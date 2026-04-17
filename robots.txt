@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /playground/
+Disallow: /implantat-3d.html
+
+Sitemap: https://www.zahnarzt-sender.de/sitemap.xml

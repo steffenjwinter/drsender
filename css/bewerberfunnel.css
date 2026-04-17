@@ -1,0 +1,541 @@
+/* ==========================================
+   BEWERBERFUNNEL — Fullscreen Overlay Funnel
+   Perspective/Funnellabs Style
+   ========================================== */
+
+/* === OVERLAY === */
+.funnel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-anthrazit) 100%);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.funnel-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* === TOP BAR === */
+.funnel__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  flex-shrink: 0;
+}
+
+.funnel__logo {
+  height: 32px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.8;
+}
+
+.funnel__close {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 8px 16px;
+  font-size: var(--fs-sm);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.funnel__close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.funnel__close svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* === PROGRESS BAR === */
+.funnel__progress {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+  margin: 0 var(--space-lg);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.funnel__progress-bar {
+  height: 100%;
+  background: var(--color-primary-light);
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 0%;
+}
+
+/* === CONTENT AREA === */
+.funnel__content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+}
+
+.funnel__inner {
+  max-width: 600px;
+  width: 100%;
+}
+
+/* === STEPS === */
+.funnel__step {
+  display: none;
+  animation: funnelFadeIn 0.35s ease;
+}
+
+.funnel__step.active {
+  display: block;
+}
+
+@keyframes funnelFadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* === QUESTION === */
+.funnel__question {
+  font-family: var(--font-heading);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  color: #fff;
+  text-align: center;
+  margin-bottom: var(--space-xl);
+  line-height: 1.3;
+}
+
+.funnel__hint {
+  font-size: var(--fs-sm);
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  margin-top: -var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+/* === OPTIONS (Single-Choice) === */
+.funnel__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.funnel__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 18px 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+  line-height: 1.4;
+}
+
+.funnel__option:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateX(4px);
+}
+
+.funnel__option.selected {
+  background: rgba(0, 123, 202, 0.3);
+  border-color: var(--color-primary-light);
+}
+
+/* Radio circle indicator */
+.funnel__option::before {
+  content: '';
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.funnel__option.selected::before {
+  border-color: var(--color-primary-light);
+  background: var(--color-primary-light);
+  box-shadow: inset 0 0 0 4px rgba(0, 38, 76, 0.8);
+}
+
+/* === MULTI-SELECT OPTIONS === */
+.funnel__options--multi .funnel__option::before {
+  border-radius: var(--radius-sm);
+}
+
+.funnel__options--multi .funnel__option.selected::before {
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-light);
+  box-shadow: inset 0 0 0 3px rgba(0, 38, 76, 0.8);
+}
+
+/* Freitext input in multi-select steps */
+.funnel__freitext {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-sm);
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.funnel__freitext::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+  font-style: italic;
+}
+
+.funnel__freitext:focus {
+  border-color: var(--color-primary-light);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Multi-select needs a continue button */
+.funnel__continue {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-lg);
+  padding: 16px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.funnel__continue.enabled {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.funnel__continue.enabled:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 123, 202, 0.4);
+}
+
+/* === FORM (Contact Step) === */
+.funnel__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.funnel__form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.funnel__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.funnel__label {
+  font-size: var(--fs-sm);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: var(--fw-semi);
+}
+
+.funnel__label .required {
+  color: rgba(255, 100, 100, 0.8);
+}
+
+.funnel__input,
+.funnel__textarea {
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  transition: border-color 0.2s ease, background 0.2s ease;
+  outline: none;
+}
+
+.funnel__input::placeholder,
+.funnel__textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.funnel__input:focus,
+.funnel__textarea:focus {
+  border-color: var(--color-primary-light);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.funnel__input.error,
+.funnel__textarea.error {
+  border-color: rgba(255, 100, 100, 0.6);
+}
+
+.funnel__textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* File Upload */
+.funnel__file-upload {
+  position: relative;
+}
+
+.funnel__file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.funnel__file-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.funnel__file-label:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.funnel__file-label.has-file {
+  border-color: var(--color-primary-light);
+  color: var(--color-primary-light);
+  border-style: solid;
+}
+
+.funnel__file-label svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Checkbox */
+.funnel__checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.funnel__checkbox input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: var(--color-primary-light);
+  cursor: pointer;
+}
+
+.funnel__checkbox label {
+  font-size: var(--fs-sm);
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.funnel__checkbox label a {
+  color: var(--color-primary-light);
+  text-decoration: underline;
+}
+
+/* Submit button */
+.funnel__submit {
+  display: block;
+  width: 100%;
+  padding: 18px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: var(--space-sm);
+}
+
+.funnel__submit:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 123, 202, 0.4);
+}
+
+.funnel__submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* === THANK YOU SCREEN === */
+.funnel__thankyou {
+  text-align: center;
+}
+
+.funnel__thankyou-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto var(--space-lg);
+  background: rgba(0, 255, 150, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00ff96;
+}
+
+.funnel__thankyou-icon svg {
+  width: 40px;
+  height: 40px;
+}
+
+.funnel__thankyou h2 {
+  color: #fff;
+  margin-bottom: var(--space-md);
+}
+
+.funnel__thankyou p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: var(--fs-lg);
+  margin-bottom: var(--space-sm);
+}
+
+.funnel__thankyou-contact {
+  display: flex;
+  gap: var(--space-lg);
+  justify-content: center;
+  margin-top: var(--space-xl);
+  flex-wrap: wrap;
+}
+
+.funnel__thankyou-contact a {
+  color: var(--color-primary-light);
+  font-weight: var(--fw-semi);
+  font-size: var(--fs-lg);
+}
+
+/* === BACK BUTTON === */
+.funnel__back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--fs-sm);
+  font-family: var(--font-body);
+  cursor: pointer;
+  padding: 0;
+  margin-top: var(--space-lg);
+  transition: color 0.2s ease;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.funnel__back:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.funnel__back svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* === STEP COUNTER === */
+.funnel__step-count {
+  text-align: center;
+  font-size: var(--fs-xs);
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: var(--space-md);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* === MOBILE === */
+@media (max-width: 600px) {
+  .funnel__topbar {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .funnel__progress {
+    margin: 0 var(--space-md);
+  }
+
+  .funnel__content {
+    padding: var(--space-md);
+    align-items: flex-start;
+    padding-top: var(--space-xl);
+  }
+
+  .funnel__question {
+    font-size: var(--fs-xl);
+  }
+
+  .funnel__option {
+    padding: 14px 18px;
+    font-size: var(--fs-sm);
+  }
+
+  .funnel__form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .funnel__thankyou-contact {
+    flex-direction: column;
+    align-items: center;
+  }
+}

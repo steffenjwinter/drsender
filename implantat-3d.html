@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Implantat 3D — Feste Zähne ein Leben lang</title>
+<style>
+/* ==========================================
+   IMPLANTAT 3D SCROLL ANIMATION v3
+   Three.js + GSAP ScrollTrigger + GLTF Models
+   ========================================== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bp-bg: #001428;
+  --bp-grid: rgba(0, 120, 200, 0.06);
+  --bp-grid-major: rgba(0, 120, 200, 0.12);
+  --bp-line: rgba(0, 180, 255, 0.6);
+  --bp-line-dim: rgba(0, 180, 255, 0.25);
+  --bp-accent: #00b4ff;
+  --bp-secondary: #007bca;
+  --bp-white: rgba(255, 255, 255, 0.9);
+  --bp-white-dim: rgba(255, 255, 255, 0.4);
+  --bp-red: rgba(255, 68, 102, 0.7);
+  --bp-green: rgba(0, 255, 150, 0.6);
+  --font-heading: 'Montserrat', sans-serif;
+  --font-body: 'Open Sans', sans-serif;
+}
+
+html { scroll-behavior: auto; }
+
+body {
+  background: var(--bp-bg);
+  color: var(--bp-white);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+/* === LOADING SCREEN === */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bp-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: opacity 0.6s ease;
+}
+.loading-screen.hidden { opacity: 0; pointer-events: none; }
+.loading-spinner {
+  width: 40px; height: 40px;
+  border: 3px solid rgba(0, 180, 255, 0.15);
+  border-top-color: var(--bp-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+.loading-text {
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--bp-white-dim);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* === INTRO === */
+.intro {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(0, 60, 120, 0.3) 0%, transparent 70%),
+    var(--bp-bg);
+}
+
+.intro__content { max-width: 650px; padding: 2rem; }
+
+.intro__label {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bp-accent);
+  border: 1px solid rgba(0, 180, 255, 0.3);
+  padding: 0.4em 1.2em;
+  border-radius: 2em;
+  margin-bottom: 1.5rem;
+}
+
+.intro__heading {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.intro__heading span { color: var(--bp-accent); }
+
+.intro__sub {
+  font-size: 1.05rem;
+  color: var(--bp-white-dim);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.intro__scroll-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bp-accent);
+  animation: pulse-down 2s ease-in-out infinite;
+}
+
+.intro__scroll-hint svg {
+  width: 20px; height: 20px;
+  stroke: var(--bp-accent);
+  fill: none;
+  stroke-width: 2;
+}
+
+@keyframes pulse-down {
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50% { transform: translateY(8px); opacity: 1; }
+}
+
+/* === 3D SECTION (pinned) === */
+.scene-section {
+  position: relative;
+  height: 800vh; /* scroll distance — longer = more time per phase */
+}
+
+.scene-wrapper {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#canvas3d {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* === UI OVERLAYS === */
+.phase-label {
+  position: absolute;
+  top: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0;
+}
+
+.phase-label__number {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bp-accent);
+  border: 1px solid rgba(0, 180, 255, 0.3);
+  padding: 0.3em 1em;
+  border-radius: 2em;
+  margin-bottom: 0.6rem;
+}
+
+.phase-label__title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  font-weight: 700;
+  color: var(--bp-white);
+}
+
+.phase-desc {
+  position: absolute;
+  bottom: 12rem;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  max-width: 500px;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0;
+}
+
+.phase-desc__text {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(0, 20, 40, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 180, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.1rem 1.6rem;
+}
+
+/* === PROGRESS BAR === */
+.progress-track {
+  position: absolute;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.progress-track__line {
+  width: 2px;
+  height: 40px;
+  background: rgba(0, 180, 255, 0.15);
+}
+
+.progress-track__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 180, 255, 0.3);
+  background: transparent;
+  transition: all 0.4s ease;
+  position: relative;
+}
+
+.progress-track__dot.active {
+  border-color: var(--bp-accent);
+  background: var(--bp-accent);
+  box-shadow: 0 0 12px rgba(0, 180, 255, 0.5);
+}
+
+.progress-track__dot-label {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-heading);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bp-white-dim);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.progress-track__dot.active .progress-track__dot-label {
+  opacity: 1;
+  color: var(--bp-accent);
+}
+
+/* === OUTRO === */
+.outro {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(0, 60, 120, 0.2) 0%, transparent 70%),
+    var(--bp-bg);
+}
+
+.outro__content { max-width: 600px; padding: 2rem; }
+
+.outro__heading {
+  font-family: var(--font-heading);
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.outro__heading span { color: var(--bp-accent); }
+
+.outro__text {
+  font-size: 1rem;
+  color: var(--bp-white-dim);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.outro__cta {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: linear-gradient(135deg, var(--bp-accent), var(--bp-secondary));
+  padding: 0.9em 2.5em;
+  border-radius: 3em;
+  text-decoration: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.outro__cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 180, 255, 0.3);
+}
+
+/* === FLASH OVERLAY === */
+.flash-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === MATERIAL CONFIGURATOR === */
+.material-panel {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 2rem;
+  z-index: 20;
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  display: flex;
+  gap: 1rem;
+}
+.material-panel.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.mat-group {
+  background: rgba(0, 20, 40, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 180, 255, 0.15);
+  border-radius: 14px;
+  padding: 1rem 1.2rem;
+  min-width: 155px;
+  opacity: 0;
+  transform: translateY(15px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  pointer-events: none;
+}
+.mat-group.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.mat-group__label {
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--bp-accent);
+  margin-bottom: 0.6rem;
+}
+.mat-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--bp-white-dim);
+}
+.mat-option:hover { color: var(--bp-white); }
+.mat-option.active { color: var(--bp-accent); }
+.mat-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+.mat-option.active .mat-swatch {
+  border-color: var(--bp-accent);
+  box-shadow: 0 0 6px rgba(0, 180, 255, 0.5);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .progress-track { right: 0.8rem; }
+  .progress-track__dot-label { display: none; }
+  .phase-desc { max-width: 90%; padding: 0 1rem; }
+  .material-panel { left: 0.5rem; bottom: 1rem; gap: 0.5rem; flex-wrap: wrap; }
+  .mat-group { min-width: 110px; padding: 0.5rem 0.6rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== LOADING SCREEN ========== -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">3D-Modelle werden geladen…</div>
+</div>
+
+<!-- ========== INTRO ========== -->
+<section class="intro">
+  <div class="intro__content">
+    <div class="intro__label">3D Implantologie</div>
+    <h1 class="intro__heading">Feste Zähne —<br><span>ein Leben lang</span></h1>
+    <p class="intro__sub">Erleben Sie Schritt für Schritt, wie ein modernes Zahnimplantat gesetzt wird. Scrollen Sie, um die einzelnen Behandlungsphasen in 3D zu entdecken.</p>
+    <div class="intro__scroll-hint">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      Scrollen zum Starten
+    </div>
+  </div>
+</section>
+
+<!-- ========== 3D SCENE ========== -->
+<section class="scene-section" id="sceneSection">
+  <div class="scene-wrapper">
+    <canvas id="canvas3d"></canvas>
+
+    <!-- Phase Labels -->
+    <div class="phase-label" id="phaseLabel">
+      <div class="phase-label__number" id="phaseNumber">01</div>
+      <div class="phase-label__title" id="phaseTitle">Ausgangssituation</div>
+    </div>
+
+    <!-- Phase Description -->
+    <div class="phase-desc" id="phaseDesc">
+      <div class="phase-desc__text" id="phaseDescText">Der betroffene Zahn ist beschädigt und muss ersetzt werden.</div>
+    </div>
+
+    <!-- Flash overlay for crown seating -->
+    <div class="flash-overlay" id="flashOverlay"></div>
+
+    <!-- Material Configurator (appears during phase 4/5) -->
+    <div class="material-panel" id="materialPanel">
+      <div class="mat-group" id="matGroupScrew">
+        <div class="mat-group__label">Implantat</div>
+        <div class="mat-option active" data-target="screw" data-mat="titan" onclick="setMaterial(this)">
+          <span class="mat-swatch" style="background:#8899aa"></span> Titan
+        </div>
+        <div class="mat-option" data-target="screw" data-mat="zirkon" onclick="setMaterial(this)">
+          <span class="mat-swatch" style="background:#e8e4dc"></span> Zirkonoxid
+        </div>
+      </div>
+      <div class="mat-group" id="matGroupAbutment">
+        <div class="mat-group__label">Abutment</div>
+        <div class="mat-option active" data-target="abutment" data-mat="titan" onclick="setMaterial(this)">
+          <span class="mat-swatch" style="background:#8899aa"></span> Titan
+        </div>
+        <div class="mat-option" data-target="abutment" data-mat="zirkon" onclick="setMaterial(this)">
+          <span class="mat-swatch" style="background:#e8e4dc"></span> Zirkon
+        </div>
+      </div>
+      <div class="mat-group" id="matGroupCrown">
+        <div class="mat-group__label">Krone</div>
+        <div class="mat-option active" data-target="crown" data-mat="vollkeramik" onclick="setMaterial(this)">
+          <span class="mat-swatch" style="background:#faf8f2"></span> Vollkeramik
+        </div>
+        <div class="mat-option" data-target="crown" data-mat="zirkon" onclick="setMaterial(this)">
+          <span class="mat-swatch" style="background:#f0ede5"></span> Zirkon
+        </div>
+        <div class="mat-option" data-target="crown" data-mat="metallkeramik" onclick="setMaterial(this)">
+          <span class="mat-swatch" style="background:linear-gradient(135deg,#999 40%,#faf8f2 60%)"></span> Metall-Keramik
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Track -->
+    <div class="progress-track" id="progressTrack">
+      <div class="progress-track__dot active" data-phase="1">
+        <span class="progress-track__dot-label">Ausgangssituation</span>
+      </div>
+      <div class="progress-track__line"></div>
+      <div class="progress-track__dot" data-phase="2">
+        <span class="progress-track__dot-label">Extraktion</span>
+      </div>
+      <div class="progress-track__line"></div>
+      <div class="progress-track__dot" data-phase="3">
+        <span class="progress-track__dot-label">Implantation</span>
+      </div>
+      <div class="progress-track__line"></div>
+      <div class="progress-track__dot" data-phase="4">
+        <span class="progress-track__dot-label">Aufbau</span>
+      </div>
+      <div class="progress-track__line"></div>
+      <div class="progress-track__dot" data-phase="5">
+        <span class="progress-track__dot-label">Fertigstellung</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== OUTRO ========== -->
+<section class="outro">
+  <div class="outro__content">
+    <h2 class="outro__heading">Ihr neues Lächeln <span>wartet</span></h2>
+    <p class="outro__text">Modernste Implantologie für natürliche Ergebnisse. Vereinbaren Sie jetzt Ihren persönlichen Beratungstermin bei Zahnarzt Sender.</p>
+    <a href="#" class="outro__cta">Termin vereinbaren</a>
+  </div>
+</section>
+
+<!-- ========== SCRIPTS ========== -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.145.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.145.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+// ============================================================
+//  IMPLANTAT 3D SCROLL ANIMATION v3 — REAL GLTF MODELS
+//  Three.js + GSAP ScrollTrigger + GLTFLoader
+// ============================================================
+
+gsap.registerPlugin(ScrollTrigger);
+
+// ------ SCENE SETUP ------
+const canvas = document.getElementById('canvas3d');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // cap for performance
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+// renderer.localClippingEnabled = true; // Clipping disabled — caused artefacts
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x001428);
+scene.fog = new THREE.FogExp2(0x001428, 0.012);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 8, 18);
+camera.lookAt(0, 0, 0);
+
+// ------ ENVIRONMENT MAP ------
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+pmremGenerator.compileEquirectangularShader();
+
+(function createEnvMap() {
+  const envScene = new THREE.Scene();
+  const envGeo = new THREE.SphereGeometry(50, 32, 16);
+  const envMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    uniforms: {
+      topColor: { value: new THREE.Color(0x334466) },
+      bottomColor: { value: new THREE.Color(0x1a0e05) },
+      midColor: { value: new THREE.Color(0x112233) }
+    },
+    vertexShader: `
+      varying vec3 vWorldPos;
+      void main() {
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorldPos = wp.xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 topColor;
+      uniform vec3 bottomColor;
+      uniform vec3 midColor;
+      varying vec3 vWorldPos;
+      void main() {
+        float h = normalize(vWorldPos).y;
+        vec3 col = mix(bottomColor, midColor, smoothstep(-1.0, 0.0, h));
+        col = mix(col, topColor, smoothstep(0.0, 1.0, h));
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `
+  });
+  envScene.add(new THREE.Mesh(envGeo, envMat));
+  const renderTarget = pmremGenerator.fromScene(envScene, 0.04);
+  scene.environment = renderTarget.texture;
+  pmremGenerator.dispose();
+})();
+
+// ------ LIGHTS ------
+const hemiLight = new THREE.HemisphereLight(0x6688bb, 0x443322, 0.6);
+scene.add(hemiLight);
+
+const dirLight = new THREE.DirectionalLight(0xfff5ee, 1.4);
+dirLight.position.set(5, 12, 8);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(512, 512); // smaller for performance
+dirLight.shadow.camera.near = 0.5;
+dirLight.shadow.camera.far = 30;
+dirLight.shadow.camera.left = -8;
+dirLight.shadow.camera.right = 8;
+dirLight.shadow.camera.top = 8;
+dirLight.shadow.camera.bottom = -8;
+dirLight.shadow.bias = -0.001;
+scene.add(dirLight);
+
+const fillLight = new THREE.DirectionalLight(0x8899cc, 0.4);
+fillLight.position.set(-5, 4, 4);
+scene.add(fillLight);
+
+const rimLight = new THREE.DirectionalLight(0x66aaff, 0.5);
+rimLight.position.set(-3, 5, -8);
+scene.add(rimLight);
+
+const warmLight = new THREE.PointLight(0xffaa77, 0.3, 15);
+warmLight.position.set(4, 3, 3);
+scene.add(warmLight);
+
+// ------ MILLIMETER PAPER GROUND ------
+// Classic light-blue engineering millimeter paper look
+const mmCanvas = document.createElement('canvas');
+mmCanvas.width = 1024;
+mmCanvas.height = 1024;
+const ctx = mmCanvas.getContext('2d');
+
+// Transparent dark background
+ctx.fillStyle = 'rgba(0, 10, 20, 0.3)';
+ctx.fillRect(0, 0, 1024, 1024);
+
+// 1mm fine grid — light blue
+ctx.strokeStyle = 'rgba(100, 190, 255, 0.22)';
+ctx.lineWidth = 0.5;
+const mmStep = 1024 / 100; // 100 divisions = 1mm grid
+for (let i = 0; i <= 100; i++) {
+  const pos = i * mmStep;
+  ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, 1024); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(1024, pos); ctx.stroke();
+}
+
+// 5mm medium grid — brighter light blue
+ctx.strokeStyle = 'rgba(100, 200, 255, 0.45)';
+ctx.lineWidth = 1;
+const medStep = 1024 / 20; // 20 divisions = 5mm grid
+for (let i = 0; i <= 20; i++) {
+  const pos = i * medStep;
+  ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, 1024); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(1024, pos); ctx.stroke();
+}
+
+// 1cm major grid — boldest light blue, classic millimeter paper look
+ctx.strokeStyle = 'rgba(90, 190, 255, 0.7)';
+ctx.lineWidth = 1.8;
+const cmStep = 1024 / 10; // 10 divisions = 1cm grid
+for (let i = 0; i <= 10; i++) {
+  const pos = i * cmStep;
+  ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, 1024); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(1024, pos); ctx.stroke();
+}
+
+const mmTexture = new THREE.CanvasTexture(mmCanvas);
+mmTexture.wrapS = THREE.RepeatWrapping;
+mmTexture.wrapT = THREE.RepeatWrapping;
+mmTexture.repeat.set(4, 4); // tile it for density
+
+const groundGeo = new THREE.PlaneGeometry(40, 40);
+const groundMat = new THREE.MeshStandardMaterial({
+  color: 0x041830,
+  roughness: 0.92,
+  metalness: 0.0,
+  transparent: true,
+  opacity: 0.85,
+  map: mmTexture,
+});
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -3.49;
+ground.receiveShadow = true;
+scene.add(ground);
+
+
+// ------ MATERIALS ------
+const toothMat = new THREE.MeshPhysicalMaterial({
+  color: 0xf5f0e8, roughness: 0.3, metalness: 0.0,
+  clearcoat: 0.4, clearcoatRoughness: 0.2,
+  transmission: 0.08, thickness: 0.5, ior: 1.5,
+  envMapIntensity: 0.6,
+});
+
+const damagedToothMat = new THREE.MeshPhysicalMaterial({
+  color: 0x8b6b42, roughness: 0.55, metalness: 0.0,
+  clearcoat: 0.08, clearcoatRoughness: 0.5,
+  emissive: 0x442200, emissiveIntensity: 0.25,
+});
+
+const crackMat = new THREE.MeshPhysicalMaterial({
+  color: 0x663322, roughness: 0.4, metalness: 0.0,
+  emissive: 0xcc3322, emissiveIntensity: 0.4,
+});
+
+const gumMat = new THREE.MeshPhysicalMaterial({
+  color: 0xc4686e, roughness: 0.7, metalness: 0.0,
+  clearcoat: 0.15, clearcoatRoughness: 0.4,
+  side: THREE.FrontSide, envMapIntensity: 0.3,
+  depthWrite: true,
+});
+
+const titaniumMat = new THREE.MeshPhysicalMaterial({
+  color: 0xb0bcc8, roughness: 0.3, metalness: 0.9,
+  envMapIntensity: 1.2, emissive: 0x222833, emissiveIntensity: 0.15,
+  depthWrite: true, depthTest: true,
+});
+
+const titaniumAbutmentMat = new THREE.MeshPhysicalMaterial({
+  color: 0xb0bcc8, roughness: 0.2, metalness: 0.92,
+  envMapIntensity: 1.3, emissive: 0x222833, emissiveIntensity: 0.15,
+  depthWrite: true, depthTest: true,
+});
+
+const porcelainMat = new THREE.MeshPhysicalMaterial({
+  color: 0xfaf8f2, roughness: 0.2, metalness: 0.0,
+  clearcoat: 0.6, clearcoatRoughness: 0.15,
+  transmission: 0.06, thickness: 0.4, ior: 1.52,
+  envMapIntensity: 0.7,
+});
+
+
+// Cross-section / clipping plane code removed — caused visual artefacts
+// Will revisit with a proper pre-made 3D model approach later
+
+// ============================================================
+//  GLTF MODEL LOADING + SCENE COMPOSITION
+// ============================================================
+
+const loader = new THREE.GLTFLoader();
+const sceneGroup = new THREE.Group();
+scene.add(sceneGroup);
+
+// References for animation
+let damagedTooth = null;
+let implantScrew = null;
+let abutment = null;
+let implantCrown = null;
+let gumMesh = null;
+const teeth = [];
+
+// Lights for effects
+const glowLight = new THREE.PointLight(0xff3344, 0, 3);
+glowLight.position.set(0, 1.2, 1);
+sceneGroup.add(glowLight);
+
+const greenGlow = new THREE.PointLight(0x00ff88, 0, 3);
+greenGlow.position.set(0, 1.5, 1);
+sceneGroup.add(greenGlow);
+
+sceneGroup.position.y = -0.5;
+
+
+// ------ HELPER: Simplify geometry for performance ------
+function simplifyGeometry(object) {
+  object.traverse(child => {
+    if (child.isMesh && child.geometry) {
+      // Disable expensive features we don't need
+      child.geometry.deleteAttribute('uv2');
+      child.frustumCulled = true;
+      child.matrixAutoUpdate = false;
+    }
+  });
+}
+
+// ------ HELPER: Normalize a GLTF model to a target size ------
+function normalizeModel(object, targetHeight) {
+  const box = new THREE.Box3().setFromObject(object);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+
+  const scale = targetHeight / size.y;
+  object.scale.setScalar(scale);
+
+  // Re-center after scaling
+  const box2 = new THREE.Box3().setFromObject(object);
+  const center2 = box2.getCenter(new THREE.Vector3());
+  object.position.sub(center2);
+
+  return { scale, size, center };
+}
+
+// ------ HELPER: Apply material to all meshes in a model ------
+function applyMaterial(object, material) {
+  object.traverse(child => {
+    if (child.isMesh) {
+      child.material = material;
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+}
+
+// ------ HELPER: Clip model — remove everything below cutY (world-space) ------
+// Used to show only the crown portion (top 60%) without roots
+function clipModelBelow(object, cutFraction) {
+  object.traverse(child => {
+    if (child.isMesh && child.geometry) {
+      const geo = child.geometry;
+      const pos = geo.attributes.position;
+      const box = new THREE.Box3().setFromObject(child);
+      const minY = box.min.y;
+      const maxY = box.max.y;
+      const cutY = minY + (maxY - minY) * cutFraction;
+
+      // Move vertices below cut to the cut plane (flattens the bottom)
+      for (let i = 0; i < pos.count; i++) {
+        // Convert to world space
+        const v = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i));
+        child.localToWorld(v);
+        if (v.y < cutY) {
+          child.worldToLocal(v.set(v.x, cutY, v.z));
+          // Actually we need the local equivalent
+          const localCut = new THREE.Vector3(0, cutY, 0);
+          child.worldToLocal(localCut);
+          pos.setY(i, localCut.y);
+        }
+      }
+      pos.needsUpdate = true;
+      geo.computeVertexNormals();
+      geo.computeBoundingBox();
+      geo.computeBoundingSphere();
+    }
+  });
+}
+
+// ------ HELPER: Deform model for tooth variation ------
+// Applies subtle vertex noise to make each tooth unique
+function deformTooth(object, seed) {
+  object.traverse(child => {
+    if (child.isMesh && child.geometry) {
+      const pos = child.geometry.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const z = pos.getZ(i);
+        // Subtle pseudo-random displacement based on seed
+        const noise = Math.sin(x * 13.7 + seed) * Math.cos(z * 17.3 + seed * 2.1) * 0.015;
+        const noiseY = Math.sin(y * 11.1 + seed * 0.7) * 0.008;
+        pos.setX(i, x + noise);
+        pos.setY(i, y + noiseY);
+        pos.setZ(i, z + noise * 0.7);
+      }
+      pos.needsUpdate = true;
+      child.geometry.computeVertexNormals();
+    }
+  });
+}
+
+// ------ HELPER: Add crack effects to damaged tooth ------
+function addCrackEffects(group) {
+  // Larger, more visible cracks
+  const crackGeo = new THREE.BoxGeometry(0.02, 0.55, 0.3);
+  const crack = new THREE.Mesh(crackGeo, crackMat);
+  crack.position.set(0.1, 0.15, 0.18);
+  crack.rotation.z = 0.2;
+  group.add(crack);
+
+  const crack2Geo = new THREE.BoxGeometry(0.02, 0.4, 0.25);
+  const crack2 = new THREE.Mesh(crack2Geo, crackMat);
+  crack2.position.set(-0.08, 0.2, 0.2);
+  crack2.rotation.z = -0.25;
+  crack2.rotation.y = 0.3;
+  group.add(crack2);
+
+  // Third crack for emphasis
+  const crack3Geo = new THREE.BoxGeometry(0.018, 0.35, 0.2);
+  const crack3 = new THREE.Mesh(crack3Geo, crackMat);
+  crack3.position.set(0.02, 0.0, 0.22);
+  crack3.rotation.z = 0.1;
+  crack3.rotation.x = 0.15;
+  group.add(crack3);
+
+  // Dark decay spot on top
+  const decayGeo = new THREE.SphereGeometry(0.12, 12, 8);
+  const decayMat = new THREE.MeshPhysicalMaterial({
+    color: 0x332200, roughness: 0.8, metalness: 0.0,
+    emissive: 0x221100, emissiveIntensity: 0.3,
+  });
+  const decay = new THREE.Mesh(decayGeo, decayMat);
+  decay.position.set(0, 0.35, 0.05);
+  decay.scale.set(1.2, 0.5, 1.0);
+  group.add(decay);
+}
+
+
+// ------ CREATE IMPLANT SCREW (procedural — precise geometry) ------
+function createImplantScrew() {
+  const group = new THREE.Group();
+  const screwLength = 2.0;
+  const radiusTop = 0.22;
+  const radiusBottom = 0.10;
+  const threadDepth = 0.04;
+  const threadCount = 14;
+  const points = [];
+
+  // Top cap
+  points.push(new THREE.Vector2(0.0, screwLength + 0.1));
+  points.push(new THREE.Vector2(radiusTop + 0.02, screwLength + 0.1));
+  points.push(new THREE.Vector2(radiusTop + 0.02, screwLength));
+
+  // Thread zigzag
+  for (let i = 0; i <= threadCount; i++) {
+    const t = i / threadCount;
+    const y = screwLength * (1 - t);
+    const baseR = radiusTop + (radiusBottom - radiusTop) * t;
+    points.push(new THREE.Vector2(baseR + threadDepth, y));
+    if (i < threadCount) {
+      const nextT = (i + 0.5) / threadCount;
+      const nextY = screwLength * (1 - nextT);
+      const nextR = radiusTop + (radiusBottom - radiusTop) * nextT;
+      points.push(new THREE.Vector2(nextR - threadDepth * 0.3, nextY));
+    }
+  }
+
+  // Bottom tip
+  points.push(new THREE.Vector2(0.02, -0.05));
+  points.push(new THREE.Vector2(0.0, -0.08));
+
+  const screwGeo = new THREE.LatheGeometry(points, 24);
+  screwGeo.computeVertexNormals();
+  const screw = new THREE.Mesh(screwGeo, titaniumMat);
+  screw.position.y = -screwLength / 2 - 0.05;
+  screw.castShadow = true;
+  screw.receiveShadow = true;
+  group.add(screw);
+
+  // Hex socket
+  const hexGeo = new THREE.CylinderGeometry(0.16, 0.2, 0.18, 6);
+  const hex = new THREE.Mesh(hexGeo, titaniumMat);
+  hex.position.y = screwLength / 2 + 0.05;
+  hex.castShadow = true;
+  group.add(hex);
+
+  return group;
+}
+
+// ------ CREATE ABUTMENT (procedural) ------
+function createAbutment() {
+  const group = new THREE.Group();
+
+  const lowerGeo = new THREE.CylinderGeometry(0.15, 0.18, 0.25, 8);
+  const lower = new THREE.Mesh(lowerGeo, titaniumAbutmentMat);
+  lower.position.y = -0.125;
+  lower.castShadow = true;
+  group.add(lower);
+
+  const bodyPoints = [];
+  for (let i = 0; i <= 12; i++) {
+    const t = i / 12;
+    const y = t * 0.55;
+    const r = 0.12 + t * 0.06 + Math.sin(t * Math.PI) * 0.02;
+    bodyPoints.push(new THREE.Vector2(r, y));
+  }
+  const bodyGeo = new THREE.LatheGeometry(bodyPoints, 16);
+  const body = new THREE.Mesh(bodyGeo, titaniumAbutmentMat);
+  body.castShadow = true;
+  group.add(body);
+
+  const topGeo = new THREE.CylinderGeometry(0.22, 0.17, 0.12, 16);
+  const topPart = new THREE.Mesh(topGeo, titaniumAbutmentMat);
+  topPart.position.y = 0.61;
+  topPart.castShadow = true;
+  group.add(topPart);
+
+  return group;
+}
+
+
+// ------ CREATE GUM (organic, anatomically correct) ------
+// Uses a custom BufferGeometry with:
+// - Interdental papillae (gum rises BETWEEN teeth, not at them)
+// - Scalloped gum margin (dips at tooth centers)
+// - Rounded organic edges, wave noise
+function createGum(teethPositions, totalWidth) {
+  const gumW = totalWidth / 2 + 0.6;   // half-width (enough room for rounded edges)
+  const gumDepth = 1.5;                  // front-to-back
+  const gumBelow = 2.4;                  // depth below gumline
+  const gumPeakHeight = 0.35;            // gum peak at tooth center (wraps around tooth)
+  const gumValleyHeight = 0.18;          // gum dips slightly between teeth
+
+  const segX = 100;  // along the jaw (left-right) — more segments for smoother edges
+  const segZ = 32;   // front-to-back
+  const vertices = [];
+  const indices = [];
+
+  // Sort teeth positions for gap detection
+  const sortedTeeth = [...teethPositions].sort((a, b) => a - b);
+
+  for (let iz = 0; iz <= segZ; iz++) {
+    const tz = iz / segZ;             // 0=back, 1=front
+    const z = -gumDepth + tz * gumDepth * 2;
+
+    // Front-back profile: elliptical arch (rounded front/back edges)
+    const normZ = (tz - 0.5) * 2; // -1 to +1
+    const archZ = Math.sqrt(Math.max(0, 1 - normZ * normZ)); // elliptical
+    const edgeFadeZ = Math.pow(archZ, 0.3); // smooth falloff at edges
+
+    for (let ix = 0; ix <= segX; ix++) {
+      const tx = ix / segX;           // 0=left, 1=right
+      const x = -gumW + tx * gumW * 2;
+
+      // Left-right edge rounding — elliptical falloff for natural rounded edges
+      const normX = (tx - 0.5) * 2; // -1 to +1
+      const ellipseX = Math.sqrt(Math.max(0, 1 - normX * normX)); // elliptical: 0 at edges, 1 at center
+      const edgeFadeX = Math.pow(ellipseX, 0.5); // softer than raw ellipse
+
+      // === GUM WRAPS AROUND EACH TOOTH ===
+      // Peak at tooth center, dips between teeth
+      let closestDist = 999;
+      for (const toothX of sortedTeeth) {
+        const dist = Math.abs(x - toothX);
+        if (dist < closestDist) closestDist = dist;
+      }
+
+      // Gum height based on proximity to nearest tooth
+      // Close to tooth center → peak (gum wraps the tooth)
+      // Between teeth → valley (slight dip)
+      let scallop = gumValleyHeight; // default: between-teeth level
+      const toothRadius = 0.45; // how far the gum influence of each tooth extends
+      for (const toothX of sortedTeeth) {
+        const dist = Math.abs(x - toothX);
+        if (dist < toothRadius) {
+          // Smooth bell curve centered on each tooth
+          const t = dist / toothRadius;
+          const bell = 1 - t * t; // quadratic falloff
+          const toothGumHeight = gumValleyHeight + (gumPeakHeight - gumValleyHeight) * bell;
+          scallop = Math.max(scallop, toothGumHeight);
+        }
+      }
+
+      // Beyond the last/first tooth: gum tapers off with smooth curve
+      const leftMost = sortedTeeth[0];
+      const rightMost = sortedTeeth[sortedTeeth.length - 1];
+      if (x < leftMost - 0.3) {
+        const beyondDist = Math.abs(x - (leftMost - 0.3));
+        const taper = Math.max(0, 1 - beyondDist * 1.2);
+        scallop *= taper * taper; // quadratic for smooth rolloff
+      }
+      if (x > rightMost + 0.3) {
+        const beyondDist = Math.abs(x - (rightMost + 0.3));
+        const taper = Math.max(0, 1 - beyondDist * 1.2);
+        scallop *= taper * taper; // quadratic for smooth rolloff
+      }
+
+      // The gum height: high at top (around teeth), low at bottom
+      // Smooth side corners: reduce depth near left/right edges
+      const sideCornerFade = Math.pow(ellipseX, 0.15); // very gentle, mostly affects extremes
+      const yTop = scallop * edgeFadeX * edgeFadeZ;
+      const yBottom = -gumBelow * edgeFadeX * sideCornerFade;
+
+      // Interpolate Y: at tz=0 and tz=1 (front/back edges) -> lower
+      // at tz=0.5 (middle, where teeth sit) -> higher
+      const profileY = yBottom + (yTop - yBottom) * Math.pow(archZ, 0.45);
+
+      // Add subtle organic waviness
+      const wave = Math.sin(x * 2.5 + z * 1.8) * 0.025 + Math.sin(x * 4.1 - z * 2.3) * 0.012;
+
+      // Edge tapering: combined elliptical falloff for truly rounded corners
+      const cornerDist = Math.sqrt(normX * normX + normZ * normZ);
+      const cornerFade = Math.pow(Math.max(0, 1 - cornerDist * 0.7), 0.3);
+      const edgeThin = Math.min(edgeFadeX * edgeFadeZ, cornerFade);
+      let finalY = profileY + wave * edgeThin;
+
+      // === IMPLANT SOCKET HOLE (round) ===
+      // Circular hole in gum around x=0 so screw/abutment aren't occluded
+      const implantX = 0;
+      const holeRadius = 0.34;
+      const distXZ = Math.sqrt((x - implantX) ** 2 + z * z);
+      if (distXZ < holeRadius) {
+        const f = 1 - (distXZ / holeRadius);
+        const smooth = f * f * (3 - 2 * f); // smoothstep — round falloff
+        finalY -= smooth * 2.2;
+      }
+
+      vertices.push(x, finalY, z);
+    }
+  }
+
+  // Build triangles
+  for (let iz = 0; iz < segZ; iz++) {
+    for (let ix = 0; ix < segX; ix++) {
+      const a = iz * (segX + 1) + ix;
+      const b = a + 1;
+      const c = a + (segX + 1);
+      const d = c + 1;
+      indices.push(a, c, b);
+      indices.push(b, c, d);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+
+  const mesh = new THREE.Mesh(geo, gumMat);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+
+  // Simple group — just the top surface mesh
+  // The camera never sees the underside, so no bottom/skirt needed
+  // This avoids all the edge artefacts from skirt geometry
+  const gumGroup = new THREE.Group();
+  gumGroup.add(mesh);
+
+  return gumGroup;
+}
+
+
+// ============================================================
+//  LOAD MODELS AND BUILD SCENE
+// ============================================================
+
+// === 3 GLB FILES ===
+// 1. Tooth WITH roots → healthy teeth + caries tooth (full extraction)
+// 2. Tooth WITHOUT roots → implant crown only (top portion)
+const TOOTH_WITH_ROOTS_PATH = 'assets-animation/zahn-mit-wurzel.glb';
+const CROWN_ONLY_PATH = 'assets-animation/Meshy_AI_just_a_white_maxilar__0412160538_texture.glb';
+
+const TOOTH_BASE_Y = 0.0;
+// Teeth close together — can almost touch, natural tight spacing
+const teethConfig = [
+  { x: -2.7,  scaleY: 1.0,  scaleXZ: 0.88, rotY: 0.05,  rotZ: 0.02,  mirror: false, seed: 1.0  },
+  { x: -1.8,  scaleY: 0.97, scaleXZ: 0.85, rotY: -0.08, rotZ: -0.01, mirror: true,  seed: 2.3  },
+  { x: -0.92, scaleY: 0.93, scaleXZ: 0.82, rotY: 0.06,  rotZ: 0.015, mirror: false, seed: 3.7  },
+  // gap at x=0 for implant
+  { x: 0.92,  scaleY: 0.92, scaleXZ: 0.80, rotY: -0.06, rotZ: -0.02, mirror: true,  seed: 4.1  },
+  { x: 1.8,   scaleY: 0.96, scaleXZ: 0.85, rotY: 0.04,  rotZ: 0.01,  mirror: false, seed: 5.5  },
+  { x: 2.7,   scaleY: 1.0,  scaleXZ: 0.88, rotY: -0.04, rotZ: -0.015,mirror: true,  seed: 6.9  },
+];
+
+let modelsLoaded = false;
+let loadedCount = 0;
+let toothWithRootsModel = null;
+let crownOnlyModel = null;
+
+function onModelLoaded() {
+  loadedCount++;
+  document.querySelector('.loading-text').textContent = `3D-Modelle werden geladen… (${loadedCount}/2)`;
+
+  if (loadedCount < 2) return; // wait for both
+  if (!toothWithRootsModel || !crownOnlyModel) return;
+
+  console.log('Both models loaded! Building scene...');
+  buildScene();
+}
+
+function buildScene() {
+  const targetHeight = 1.7;
+
+  // ====================================
+  // FILE 1: HEALTHY TEETH (with roots)
+  // ====================================
+  teethConfig.forEach((cfg, idx) => {
+    const toothClone = toothWithRootsModel.clone();
+    normalizeModel(toothClone, targetHeight);
+    applyMaterial(toothClone, toothMat);
+    deformTooth(toothClone, cfg.seed);
+
+    const toothGroup = new THREE.Group();
+    toothGroup.add(toothClone);
+    toothGroup.position.set(cfg.x, TOOTH_BASE_Y, 0);
+    toothGroup.scale.y *= cfg.scaleY;
+    toothGroup.scale.x *= cfg.scaleXZ;
+    toothGroup.scale.z *= cfg.scaleXZ;
+    if (cfg.mirror) toothGroup.scale.x *= -1;
+    toothGroup.rotation.y = cfg.rotY;
+    toothGroup.rotation.z = cfg.rotZ;
+
+    sceneGroup.add(toothGroup);
+    teeth.push(toothGroup);
+  });
+
+  // ====================================
+  // FILE 2: CARIES TOOTH (same model with roots, dark material)
+  // Full tooth that gets extracted WITH its roots visible
+  // ====================================
+  const damagedClone = toothWithRootsModel.clone();
+  normalizeModel(damagedClone, targetHeight * 0.95);
+  applyMaterial(damagedClone, damagedToothMat);
+
+  damagedTooth = new THREE.Group();
+  damagedTooth.add(damagedClone);
+  damagedTooth.position.set(0, TOOTH_BASE_Y, 0);
+  addCrackEffects(damagedTooth);
+  sceneGroup.add(damagedTooth);
+
+  // ====================================
+  // FILE 3: IMPLANT CROWN (without roots, clipped)
+  // Only the visible crown portion that sits on the abutment
+  // ====================================
+  const crownClone = crownOnlyModel.clone();
+  normalizeModel(crownClone, targetHeight * 1.0);
+  applyMaterial(crownClone, porcelainMat);
+  clipModelBelow(crownClone, 0.40); // cut bottom 40% — only crown visible
+
+  implantCrown = new THREE.Group();
+  implantCrown.add(crownClone);
+  // Match neighbor tooth scale
+  implantCrown.scale.set(0.85, 0.93, 0.85);
+  implantCrown.position.set(0, 50, 0); // far off-screen until needed
+  implantCrown.visible = false;
+  sceneGroup.add(implantCrown);
+
+  // ====================================
+  // PROCEDURAL: Screw + Abutment (mechanical precision)
+  // ====================================
+  implantScrew = createImplantScrew();
+  implantScrew.position.set(0, 50, 0); // far off-screen until needed
+  implantScrew.visible = false;
+  sceneGroup.add(implantScrew);
+
+  abutment = createAbutment();
+  abutment.position.set(0, 50, 0); // far off-screen until needed
+  abutment.visible = false;
+  sceneGroup.add(abutment);
+
+  // ====================================
+  // GUM (organic, wraps teeth snugly)
+  // ====================================
+  // Include x=0 so gum rim is at same height as neighboring teeth
+  const allTeethX = teethConfig.map(c => c.x).concat([0]);
+  gumMesh = createGum(allTeethX, 6.2);
+  gumMesh.position.y = -0.05;
+  sceneGroup.add(gumMesh);
+
+  // ====================================
+  // JAWBONE — REMOVED (caused visible artefacts)
+  // Cross-section concept will be revisited with a cleaner approach
+  // ====================================
+
+  // ====================================
+  // DONE
+  // ====================================
+  modelsLoaded = true;
+  buildTimeline();
+
+  document.getElementById('loadingScreen').classList.add('hidden');
+  setTimeout(() => {
+    document.getElementById('loadingScreen').style.display = 'none';
+  }, 700);
+
+  console.log('Scene built with 3 real GLB models!');
+}
+
+// === LAZY LOADING ===
+// Only start loading 3D models when the scene section is near the viewport
+let modelsStartedLoading = false;
+
+function startLoadingModels() {
+  if (modelsStartedLoading) return;
+  modelsStartedLoading = true;
+  console.log('Scene section approaching — starting model load...');
+
+  // --- LOAD MODEL 1: Tooth with roots ---
+  loader.load(TOOTH_WITH_ROOTS_PATH, (gltf) => {
+    toothWithRootsModel = gltf.scene;
+    console.log('Loaded: tooth with roots');
+    onModelLoaded();
+  }, (p) => {
+    if (p.total > 0) {
+      document.querySelector('.loading-text').textContent =
+        `Zahn-Modell… ${Math.round(p.loaded / p.total * 100)}%`;
+    }
+  }, (err) => {
+    console.error('Failed to load tooth with roots:', err);
+    loader.load(CROWN_ONLY_PATH, (gltf) => {
+      toothWithRootsModel = gltf.scene;
+      onModelLoaded();
+    });
+  });
+
+  // --- LOAD MODEL 2: Crown only (no roots) ---
+  loader.load(CROWN_ONLY_PATH, (gltf) => {
+    crownOnlyModel = gltf.scene;
+    console.log('Loaded: crown only');
+    onModelLoaded();
+  }, (progress) => {
+    if (progress.total > 0) {
+      const pct = Math.round(progress.loaded / progress.total * 100);
+      document.querySelector('.loading-text').textContent = `3D-Modelle werden geladen… ${pct}%`;
+    }
+  }, (error) => {
+    console.error('Error loading GLTF model:', error);
+    console.log('Falling back to procedural teeth...');
+    document.querySelector('.loading-text').textContent = 'Fallback: Prozedurale Geometrie…';
+    buildProceduralFallback();
+  });
+}
+
+// IntersectionObserver: trigger loading when section is 300px from viewport
+const lazyObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      startLoadingModels();
+      lazyObserver.disconnect(); // only trigger once
+    }
+  });
+}, {
+  rootMargin: '300px 0px' // start loading 300px BEFORE section scrolls into view
+});
+
+const sceneSection = document.getElementById('sceneSection');
+if (sceneSection) {
+  lazyObserver.observe(sceneSection);
+}
+
+// Fallback: if user scrolls very fast, ensure loading starts
+window.addEventListener('scroll', () => {
+  if (!modelsStartedLoading) {
+    const rect = sceneSection.getBoundingClientRect();
+    if (rect.top < window.innerHeight + 500) {
+      startLoadingModels();
+    }
+  }
+}, { passive: true });
+
+
+// ============================================================
+//  FALLBACK: Procedural teeth if GLTF fails to load
+// ============================================================
+function buildProceduralFallback() {
+  // Same LatheGeometry approach as v2
+  function createMolarCrown(w, h, d) {
+    const group = new THREE.Group();
+    const points = [];
+    const segs = 24;
+    for (let i = 0; i <= segs; i++) {
+      const t = i / segs;
+      let r;
+      if (t < 0.05) { r = w * 0.38 + t * w * 0.8; }
+      else if (t < 0.15) { r = w * 0.42; }
+      else if (t < 0.5) { const bt = (t - 0.15) / 0.35; r = w * 0.42 + Math.sin(bt * Math.PI) * w * 0.12; }
+      else if (t < 0.75) { const ut = (t - 0.5) / 0.25; r = w * 0.48 - ut * w * 0.04; }
+      else if (t < 0.85) { const ct = (t - 0.75) / 0.1; r = w * 0.44 - ct * w * 0.06; }
+      else if (t < 0.92) { const bmt = (t - 0.85) / 0.07; r = w * 0.38 + Math.sin(bmt * Math.PI) * w * 0.08; }
+      else { const tt = (t - 0.92) / 0.08; r = w * 0.38 * (1 - tt * 0.6); }
+      points.push(new THREE.Vector2(r, t * h));
+    }
+    const geo = new THREE.LatheGeometry(points, 20);
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      pos.setX(i, pos.getX(i) * (d / w) * 1.05);
+      const y = pos.getY(i);
+      if (y > h * 0.7) {
+        const angle = Math.atan2(pos.getZ(i), pos.getX(i));
+        const bump = Math.abs(Math.sin(angle * 2)) * h * 0.06 * ((y - h * 0.7) / (h * 0.3));
+        pos.setY(i, y + bump);
+      }
+    }
+    geo.computeVertexNormals();
+    const mesh = new THREE.Mesh(geo, toothMat);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    group.add(mesh);
+    return group;
+  }
+
+  function createRoot(length, rTop, rBot, angle, mat) {
+    const geo = new THREE.CylinderGeometry(rTop, rBot, length, 10, 8);
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const y = pos.getY(i);
+      const t = (y + length / 2) / length;
+      pos.setX(i, pos.getX(i) + Math.sin((1 - t) * Math.PI * 0.4) * length * 0.04);
+    }
+    geo.computeVertexNormals();
+    const mesh = new THREE.Mesh(geo, mat || toothMat);
+    mesh.position.y = -length / 2;
+    if (angle) mesh.rotation.z = angle;
+    mesh.castShadow = true;
+    return mesh;
+  }
+
+  // Build 6 healthy teeth
+  const positions = [-3.0, -2.0, -1.05, 1.05, 2.0, 3.0];
+  positions.forEach(x => {
+    const g = new THREE.Group();
+    const crown = createMolarCrown(0.85, 0.85, 0.75);
+    crown.position.y = 0.05;
+    g.add(crown);
+    const r1 = createRoot(1.3, 0.13, 0.03, -0.18, toothMat);
+    r1.position.set(-0.2, -0.7, 0);
+    g.add(r1);
+    const r2 = createRoot(1.2, 0.12, 0.025, 0.18, toothMat);
+    r2.position.set(0.2, -0.65, 0);
+    g.add(r2);
+    g.position.set(x, 0.5, 0);
+    sceneGroup.add(g);
+    teeth.push(g);
+  });
+
+  // Damaged tooth
+  damagedTooth = new THREE.Group();
+  const dmgCrown = createMolarCrown(0.8, 0.8, 0.7);
+  dmgCrown.traverse(c => { if (c.isMesh) c.material = damagedToothMat; });
+  dmgCrown.position.y = 0.05;
+  damagedTooth.add(dmgCrown);
+  addCrackEffects(damagedTooth, 0.8, 0.8);
+  const dr1 = createRoot(1.3, 0.13, 0.03, -0.18, damagedToothMat);
+  dr1.position.set(-0.2, -0.7, 0);
+  damagedTooth.add(dr1);
+  const dr2 = createRoot(1.2, 0.12, 0.025, 0.18, damagedToothMat);
+  dr2.position.set(0.2, -0.65, 0);
+  damagedTooth.add(dr2);
+  damagedTooth.position.set(0, 0.5, 0);
+  sceneGroup.add(damagedTooth);
+
+  // Implant parts
+  implantScrew = createImplantScrew();
+  implantScrew.position.set(0, 8, 0);
+  implantScrew.visible = false;
+  sceneGroup.add(implantScrew);
+
+  abutment = createAbutment();
+  abutment.position.set(0, 10, 0);
+  abutment.visible = false;
+  sceneGroup.add(abutment);
+
+  // Crown
+  implantCrown = new THREE.Group();
+  const ic = createMolarCrown(0.85, 0.85, 0.75);
+  ic.traverse(c => { if (c.isMesh) c.material = porcelainMat; });
+  implantCrown.add(ic);
+  implantCrown.position.set(0, 12, 0);
+  implantCrown.visible = false;
+  sceneGroup.add(implantCrown);
+
+  // Gum
+  const allX = positions.concat([0]);
+  gumMesh = createGum(allX, 7);
+  gumMesh.position.y = -0.2;
+  sceneGroup.add(gumMesh);
+
+  modelsLoaded = true;
+  buildTimeline();
+
+  document.getElementById('loadingScreen').classList.add('hidden');
+  setTimeout(() => { document.getElementById('loadingScreen').style.display = 'none'; }, 700);
+}
+
+
+// ============================================================
+//  GSAP SCROLL TIMELINE
+// ============================================================
+
+// ------ UI ELEMENTS ------
+const phaseLabel = document.getElementById('phaseLabel');
+const phaseNumber = document.getElementById('phaseNumber');
+const phaseTitle = document.getElementById('phaseTitle');
+const phaseDesc = document.getElementById('phaseDesc');
+const phaseDescText = document.getElementById('phaseDescText');
+const progressDots = document.querySelectorAll('.progress-track__dot');
+const flashOverlay = document.getElementById('flashOverlay');
+
+const phaseInfo = [
+  { num: '01', title: 'Ausgangssituation', desc: 'Der beschädigte Zahn ist stark angegriffen und muss professionell ersetzt werden.' },
+  { num: '02', title: 'Extraktion', desc: 'Der geschädigte Zahn wird schonend entfernt, um Platz für das Implantat zu schaffen.' },
+  { num: '03', title: 'Implantation', desc: 'Die Titan-Schraube wird präzise in den Kieferknochen eingesetzt — das Fundament für Ihren neuen Zahn.' },
+  { num: '04', title: 'Aufbau', desc: 'Das Abutment verbindet die Schraube mit der künftigen Krone und bildet die Verbindung zum sichtbaren Zahnersatz.' },
+  { num: '05', title: 'Fertigstellung', desc: 'Die individuell gefertigte Porzellankrone wird aufgesetzt — Ihr neuer Zahn ist nicht von echten Zähnen zu unterscheiden.' },
+];
+
+function setPhase(idx) {
+  const info = phaseInfo[idx];
+  phaseNumber.textContent = info.num;
+  phaseTitle.textContent = info.title;
+  phaseDescText.textContent = info.desc;
+  progressDots.forEach((dot, i) => {
+    dot.classList.toggle('active', i <= idx);
+  });
+}
+
+const camPos = { x: 0, y: 8, z: 18 };
+const camLook = { x: 0, y: 0, z: 0 };
+let lastScrollTime = Date.now();
+let isIdle = false;
+
+
+function buildTimeline() {
+  if (!damagedTooth || !implantScrew || !abutment || !implantCrown) {
+    console.warn('Models not ready for timeline');
+    return;
+  }
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: '#sceneSection',
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: 0.8,
+      pin: false,
+      onUpdate: self => {
+        lastScrollTime = Date.now();
+        isIdle = false;
+        camera.position.set(camPos.x, camPos.y, camPos.z);
+        camera.lookAt(camLook.x, camLook.y, camLook.z);
+
+        // === VISIBILITY CONTROL based on scroll progress ===
+        // This runs on EVERY scroll update, so it works bidirectionally
+        const p = self.progress;
+        // Screw: visible only during phase 3+ (after 0.46)
+        if (p < 0.46) {
+          implantScrew.visible = false;
+          implantScrew.position.y = 50; // off-screen
+        }
+        // Abutment: visible only during phase 4+ (after 0.66)
+        if (p < 0.66) {
+          abutment.visible = false;
+          abutment.position.y = 50;
+        }
+        // Crown: visible only during phase 5+ (after 0.81)
+        if (p < 0.81) {
+          implantCrown.visible = false;
+          implantCrown.position.y = 50;
+        }
+        // Damaged tooth: reset when scrolling back before extraction
+        if (p < 0.30) {
+          damagedTooth.visible = true;
+          damagedTooth.position.set(0, TOOTH_BASE_Y, 0);
+          damagedTooth.rotation.z = 0;
+          damagedTooth.traverse(c => {
+            if (c.isMesh && c.material) {
+              c.material.opacity = 1;
+              c.material.transparent = false;
+            }
+          });
+        }
+        // Material panel visibility
+        updateMaterialPanel(p);
+      }
+    }
+  });
+
+  // === PHASE 0: Intro Zoom (0% - 15%) ===
+  // Camera starts wider but NOT looking upward (avoids seeing off-screen objects)
+  tl.fromTo(camPos,
+    { x: 4, y: 6, z: 18 },
+    { x: 1.5, y: 3.5, z: 8, duration: 0.15, ease: 'power3.inOut' },
+    0
+  );
+  tl.fromTo(camLook,
+    { x: 0, y: 0.5, z: 0 },
+    { x: 0, y: 0.3, z: 0, duration: 0.15, ease: 'power3.inOut' },
+    0
+  );
+
+  // === PHASE 1: Ausgangssituation (15% - 30%) ===
+  tl.add(() => setPhase(0), 0.15);
+  tl.to(phaseLabel, { opacity: 1, duration: 0.03, ease: 'power2.in' }, 0.15);
+  tl.to(phaseDesc, { opacity: 1, duration: 0.03, ease: 'power2.in' }, 0.16);
+
+  // Red glow pulse
+  tl.to(glowLight, { intensity: 3, duration: 0.04, ease: 'power2.out' }, 0.17);
+  tl.to(glowLight, { intensity: 0.8, duration: 0.04, ease: 'power2.in' }, 0.21);
+  tl.to(glowLight, { intensity: 2.5, duration: 0.03, ease: 'power2.out' }, 0.24);
+  tl.to(glowLight, { intensity: 1.2, duration: 0.03 }, 0.27);
+
+  // Camera settles
+  tl.to(camPos, { x: 0.6, y: 2.8, z: 7, duration: 0.15, ease: 'power2.inOut' }, 0.15);
+  tl.to(camLook, { x: 0, y: 0.5, z: 0, duration: 0.15, ease: 'power2.inOut' }, 0.15);
+
+  // === PHASE 2: Extraktion (30% - 45%) ===
+  tl.to(phaseLabel, { opacity: 0, duration: 0.015 }, 0.29);
+  tl.to(phaseDesc, { opacity: 0, duration: 0.015 }, 0.29);
+  tl.add(() => setPhase(1), 0.30);
+  tl.to(phaseLabel, { opacity: 1, duration: 0.025, ease: 'power2.in' }, 0.305);
+  tl.to(phaseDesc, { opacity: 1, duration: 0.025, ease: 'power2.in' }, 0.31);
+
+  tl.to(glowLight, { intensity: 0, duration: 0.03, ease: 'power2.out' }, 0.30);
+
+  // Extract damaged tooth (fully reversible on scroll back!)
+  tl.to(damagedTooth.position, { y: 1.2, duration: 0.04, ease: 'power1.in' }, 0.32);
+  tl.to(damagedTooth.rotation, { z: 0.06, duration: 0.02, ease: 'power1.inOut' }, 0.32);
+  tl.to(damagedTooth.rotation, { z: -0.04, duration: 0.02, ease: 'power1.inOut' }, 0.34);
+  tl.to(damagedTooth.rotation, { z: 0.03, duration: 0.02, ease: 'power1.inOut' }, 0.36);
+  tl.to(damagedTooth.position, { y: 4.5, duration: 0.06, ease: 'power2.in' }, 0.36);
+  tl.to(damagedTooth.rotation, { z: 0.12, duration: 0.06, ease: 'power1.in' }, 0.36);
+  // Fade out (using a proxy that works bidirectionally)
+  const dmgFade = { opacity: 1 };
+  tl.to(dmgFade, {
+    opacity: 0, duration: 0.04,
+    onUpdate: () => {
+      damagedTooth.traverse(c => {
+        if (c.isMesh && c.material) {
+          c.material.opacity = dmgFade.opacity;
+          c.material.transparent = true;
+        }
+      });
+      damagedTooth.visible = dmgFade.opacity > 0.01;
+    }
+  }, 0.40);
+
+  tl.to(camPos, { x: 0.3, y: 3.4, z: 6.5, duration: 0.15, ease: 'power2.inOut' }, 0.30);
+
+  // === PHASE 3: Implantation (45% - 65%) ===
+  tl.to(phaseLabel, { opacity: 0, duration: 0.015 }, 0.44);
+  tl.to(phaseDesc, { opacity: 0, duration: 0.015 }, 0.44);
+  tl.add(() => setPhase(2), 0.45);
+  tl.to(phaseLabel, { opacity: 1, duration: 0.025, ease: 'power2.in' }, 0.455);
+  tl.to(phaseDesc, { opacity: 1, duration: 0.025, ease: 'power2.in' }, 0.46);
+
+  // Screw appears and screws in — visibility managed by onUpdate above
+  const screwY = { v: 50 };
+  tl.to(screwY, { v: 8, duration: 0.001,
+    onUpdate: () => { implantScrew.position.y = screwY.v; implantScrew.visible = screwY.v < 49; }
+  }, 0.46);
+  tl.to(screwY, { v: 4, duration: 0.04, ease: 'power1.in',
+    onUpdate: () => { implantScrew.position.y = screwY.v; implantScrew.visible = true; }
+  }, 0.461);
+  tl.to(screwY, { v: -0.6, duration: 0.12, ease: 'power2.inOut',
+    onUpdate: () => { implantScrew.position.y = screwY.v; }
+  }, 0.51);
+  tl.to(implantScrew.rotation, { y: Math.PI * 6, duration: 0.12, ease: 'power2.inOut' }, 0.51);
+
+  tl.to(camPos, { x: -0.8, y: 3.0, z: 7, duration: 0.20, ease: 'power2.inOut' }, 0.45);
+  tl.to(camLook, { x: 0, y: 0.2, z: 0, duration: 0.20, ease: 'power2.inOut' }, 0.45);
+
+  // === PHASE 4: Aufbau (65% - 80%) ===
+  tl.to(phaseLabel, { opacity: 0, duration: 0.015 }, 0.64);
+  tl.to(phaseDesc, { opacity: 0, duration: 0.015 }, 0.64);
+  tl.add(() => setPhase(3), 0.65);
+  tl.to(phaseLabel, { opacity: 1, duration: 0.025, ease: 'power2.in' }, 0.655);
+  tl.to(phaseDesc, { opacity: 1, duration: 0.025, ease: 'power2.in' }, 0.66);
+
+  // Abutment — visibility managed by onUpdate above
+  const abutY = { v: 50 };
+  tl.to(abutY, { v: 8, duration: 0.001,
+    onUpdate: () => { abutment.position.y = abutY.v; abutment.visible = abutY.v < 49; }
+  }, 0.66);
+  tl.to(abutY, { v: 0.1, duration: 0.08, ease: 'power2.inOut',
+    onUpdate: () => { abutment.position.y = abutY.v; abutment.visible = true; }
+  }, 0.661);
+  tl.to(abutY, { v: -0.05, duration: 0.02, ease: 'back.out(2)',
+    onUpdate: () => { abutment.position.y = abutY.v; }
+  }, 0.75);
+
+  tl.to(camPos, { x: 0.6, y: 2.5, z: 6, duration: 0.15, ease: 'power2.inOut' }, 0.65);
+  tl.to(camLook, { x: 0, y: 0.5, z: 0, duration: 0.15, ease: 'power2.inOut' }, 0.65);
+
+  // === PHASE 5: Fertigstellung (80% - 95%) ===
+  tl.to(phaseLabel, { opacity: 0, duration: 0.015 }, 0.79);
+  tl.to(phaseDesc, { opacity: 0, duration: 0.015 }, 0.79);
+  tl.add(() => setPhase(4), 0.80);
+  tl.to(phaseLabel, { opacity: 1, duration: 0.025, ease: 'power2.in' }, 0.805);
+  tl.to(phaseDesc, { opacity: 1, duration: 0.025, ease: 'power2.in' }, 0.81);
+
+  // Crown — visibility managed by onUpdate above
+  const crownY = { v: 50 };
+  tl.to(crownY, { v: 8, duration: 0.001,
+    onUpdate: () => { implantCrown.position.y = crownY.v; implantCrown.visible = crownY.v < 49; }
+  }, 0.81);
+  // Sink abutment down so crown completely covers it
+  tl.to(abutY, { v: -0.35, duration: 0.04, ease: 'power2.in',
+    onUpdate: () => { abutment.position.y = abutY.v; }
+  }, 0.85);
+  // Crown lands EXACTLY flush with neighboring teeth
+  tl.to(crownY, { v: TOOTH_BASE_Y + 0.15, duration: 0.08, ease: 'power2.inOut',
+    onUpdate: () => { implantCrown.position.y = crownY.v; implantCrown.visible = true; }
+  }, 0.811);
+  tl.to(crownY, { v: TOOTH_BASE_Y, duration: 0.02, ease: 'back.out(2)',
+    onUpdate: () => { implantCrown.position.y = crownY.v; }
+  }, 0.90);
+
+  // Flash
+  tl.to(flashOverlay, { opacity: 0.25, duration: 0.005, ease: 'power4.out' }, 0.90);
+  tl.to(flashOverlay, { opacity: 0, duration: 0.02, ease: 'power2.in' }, 0.905);
+
+  // Green glow
+  tl.to(greenGlow, { intensity: 2.5, duration: 0.03, ease: 'power2.out' }, 0.91);
+  tl.to(greenGlow, { intensity: 0.6, duration: 0.03, ease: 'power2.in' }, 0.94);
+
+  tl.to(camPos, { x: 0, y: 2.8, z: 6.5, duration: 0.15, ease: 'power2.inOut' }, 0.80);
+  tl.to(camLook, { x: 0, y: 0.5, z: 0, duration: 0.15, ease: 'power2.inOut' }, 0.80);
+
+  // === OUTRO (95% - 100%) ===
+  tl.to(phaseLabel, { opacity: 0, duration: 0.025, ease: 'power2.out' }, 0.95);
+  tl.to(phaseDesc, { opacity: 0, duration: 0.025, ease: 'power2.out' }, 0.95);
+  // Keep green glow at a warm level — the finished implant stays well-lit
+  tl.to(greenGlow, { intensity: 1.2, duration: 0.03, ease: 'power2.out' }, 0.95);
+  tl.to(camPos, { x: 0, y: 4, z: 12, duration: 0.05, ease: 'power3.inOut' }, 0.95);
+  tl.to(camLook, { x: 0, y: 0.3, z: 0, duration: 0.05, ease: 'power3.inOut' }, 0.95);
+}
+
+
+// ------ ANIMATION LOOP ------
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const t = clock.getElapsedTime();
+
+  // Subtle scene float
+  sceneGroup.rotation.y = Math.sin(t * 0.3) * 0.015;
+
+  // Idle camera breathing
+  if (Date.now() - lastScrollTime > 1500) {
+    isIdle = true;
+  }
+  if (isIdle) {
+    const breathX = Math.sin(t * 0.5) * 0.15;
+    const breathY = Math.cos(t * 0.3) * 0.08;
+    camera.position.set(
+      camPos.x + breathX,
+      camPos.y + breathY,
+      camPos.z
+    );
+    camera.lookAt(camLook.x, camLook.y, camLook.z);
+  } else {
+    camera.position.set(camPos.x, camPos.y, camPos.z);
+    camera.lookAt(camLook.x, camLook.y, camLook.z);
+  }
+
+  renderer.render(scene, camera);
+}
+animate();
+
+
+// ------ RESIZE HANDLER ------
+function onResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+window.addEventListener('resize', onResize);
+
+
+// ------ MATERIAL CONFIGURATOR ------
+const materialPanel = document.getElementById('materialPanel');
+
+// Material presets
+const matPresets = {
+  screw: {
+    titan: new THREE.MeshPhysicalMaterial({
+      color: 0xb0bcc8, roughness: 0.3, metalness: 0.9, envMapIntensity: 1.2,
+      emissive: 0x222833, emissiveIntensity: 0.15,
+    }),
+    zirkon: new THREE.MeshPhysicalMaterial({
+      color: 0xe8e4dc, roughness: 0.25, metalness: 0.05,
+      clearcoat: 0.5, clearcoatRoughness: 0.15, envMapIntensity: 0.6,
+    }),
+  },
+  crown: {
+    vollkeramik: new THREE.MeshPhysicalMaterial({
+      color: 0xfaf8f2, roughness: 0.2, metalness: 0.0,
+      clearcoat: 0.6, clearcoatRoughness: 0.15,
+      transmission: 0.06, thickness: 0.4, ior: 1.52, envMapIntensity: 0.7,
+    }),
+    zirkon: new THREE.MeshPhysicalMaterial({
+      color: 0xf0ede5, roughness: 0.15, metalness: 0.02,
+      clearcoat: 0.7, clearcoatRoughness: 0.1, envMapIntensity: 0.8,
+    }),
+    metallkeramik: new THREE.MeshPhysicalMaterial({
+      color: 0xf5f0e8, roughness: 0.25, metalness: 0.15,
+      clearcoat: 0.4, clearcoatRoughness: 0.2, envMapIntensity: 0.7,
+    }),
+  },
+  abutment: {
+    titan: new THREE.MeshPhysicalMaterial({
+      color: 0xb0bcc8, roughness: 0.2, metalness: 0.92, envMapIntensity: 1.3,
+      emissive: 0x222833, emissiveIntensity: 0.15,
+    }),
+    zirkon: new THREE.MeshPhysicalMaterial({
+      color: 0xe8e4dc, roughness: 0.2, metalness: 0.05,
+      clearcoat: 0.5, clearcoatRoughness: 0.15, envMapIntensity: 0.6,
+    }),
+  },
+};
+
+function setMaterial(el) {
+  const target = el.dataset.target;
+  const matName = el.dataset.mat;
+  const mat = matPresets[target]?.[matName];
+  if (!mat) return;
+
+  // Update active state in UI
+  el.parentElement.querySelectorAll('.mat-option').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+
+  // Apply material to 3D objects
+  let obj = null;
+  if (target === 'screw' && implantScrew) obj = implantScrew;
+  if (target === 'crown' && implantCrown) obj = implantCrown;
+  if (target === 'abutment' && abutment) obj = abutment;
+
+  if (obj) {
+    obj.traverse(child => {
+      if (child.isMesh) child.material = mat;
+    });
+  }
+}
+
+// Show/hide material panel groups progressively based on scroll progress
+const matGroupScrew = document.getElementById('matGroupScrew');
+const matGroupAbutment = document.getElementById('matGroupAbutment');
+const matGroupCrown = document.getElementById('matGroupCrown');
+
+function updateMaterialPanel(progress) {
+  const p = progress;
+  const hideAll = p < 0.46 || p >= 0.96;
+
+  // Show parent panel container when any group is visible
+  const anyVisible = !hideAll;
+  materialPanel.classList.toggle('visible', anyVisible);
+
+  // Implantat: appears with screw (phase 3, ~0.46)
+  matGroupScrew.classList.toggle('visible', p >= 0.46 && p < 0.96);
+
+  // Abutment: appears with abutment (phase 4, ~0.66)
+  matGroupAbutment.classList.toggle('visible', p >= 0.66 && p < 0.96);
+
+  // Krone: appears with crown (phase 5, ~0.81)
+  matGroupCrown.classList.toggle('visible', p >= 0.81 && p < 0.96);
+}
+
+
+// ------ INITIAL STATE ------
+camPos.x = 4; camPos.y = 6; camPos.z = 18;
+camLook.x = 0; camLook.y = 0.5; camLook.z = 0;
+camera.position.set(camPos.x, camPos.y, camPos.z);
+camera.lookAt(camLook.x, camLook.y, camLook.z);
+
+</script>
+</body>
+</html>
