@@ -616,3 +616,81 @@
     top: auto;
   }
 }
+
+/* ===== 3D ANSEHEN BUTTON (Implantate Landingpage) ===== */
+.btn-3d-ansehen {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 1.25rem 2rem;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: #fff;
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 40px rgba(0, 38, 76, 0.22);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  min-width: min(440px, 100%);
+  text-align: left;
+  font-family: var(--font-body);
+}
+
+.btn-3d-ansehen:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 50px rgba(0, 38, 76, 0.3);
+}
+
+.btn-3d-ansehen__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  color: #fff;
+}
+
+.btn-3d-ansehen__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.btn-3d-ansehen__text strong {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.btn-3d-ansehen__text small {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+.btn-3d-ansehen__arrow {
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+  opacity: 0.85;
+}
+
+.btn-3d-ansehen:hover .btn-3d-ansehen__arrow {
+  transform: translateX(4px);
+  opacity: 1;
+}
+
+@media (max-width: 600px) {
+  .btn-3d-ansehen {
+    min-width: 0;
+    width: 100%;
+    padding: 1rem 1.25rem;
+    gap: var(--space-sm);
+  }
+  .btn-3d-ansehen__icon { width: 44px; height: 44px; }
+  .btn-3d-ansehen__icon svg { width: 22px; height: 22px; }
+  .btn-3d-ansehen__text strong { font-size: 1rem; }
+  .btn-3d-ansehen__text small { font-size: 0.75rem; }
+}

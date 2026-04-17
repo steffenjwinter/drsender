@@ -1,39 +1,52 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Implantat 3D — Feste Zähne ein Leben lang</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Zahnimplantat in 3D erleben — Schritt für Schritt zeigen wir Ihnen, wie ein modernes Zahnimplantat bei Dres. Sender in Nunkirchen gesetzt wird.">
+  <meta name="robots" content="index, follow">
+  <title>Zahnimplantat in 3D erleben | Zahnarztpraxis Dres. Sender</title>
+
+  <meta property="og:title" content="Zahnimplantat in 3D — Dres. Sender Nunkirchen">
+  <meta property="og:description" content="Interaktive 3D-Animation: So entsteht Ihr neues Implantat.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.zahnarzt-sender.de/implantat-3d.html">
+  <meta property="og:locale" content="de_DE">
+
+  <link rel="canonical" href="https://www.zahnarzt-sender.de/implantat-3d.html">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+
+  <!-- Shared CSS (Header, Footer, etc.) -->
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/sections.css">
+  <link rel="stylesheet" href="css/responsive.css">
+
 <style>
 /* ==========================================
-   IMPLANTAT 3D SCROLL ANIMATION v3
+   IMPLANTAT 3D SCROLL ANIMATION — Light Mode
    Three.js + GSAP ScrollTrigger + GLTF Models
    ========================================== */
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
 :root {
-  --bp-bg: #001428;
-  --bp-grid: rgba(0, 120, 200, 0.06);
-  --bp-grid-major: rgba(0, 120, 200, 0.12);
-  --bp-line: rgba(0, 180, 255, 0.6);
-  --bp-line-dim: rgba(0, 180, 255, 0.25);
-  --bp-accent: #00b4ff;
+  --bp-bg: #ffffff;
+  --bp-bg-soft: #f4f7fb;
+  --bp-grid: rgba(0, 38, 76, 0.06);
+  --bp-grid-major: rgba(0, 38, 76, 0.12);
+  --bp-line: rgba(0, 38, 76, 0.6);
+  --bp-line-dim: rgba(0, 38, 76, 0.25);
+  --bp-accent: #00264c;
   --bp-secondary: #007bca;
-  --bp-white: rgba(255, 255, 255, 0.9);
-  --bp-white-dim: rgba(255, 255, 255, 0.4);
-  --bp-red: rgba(255, 68, 102, 0.7);
-  --bp-green: rgba(0, 255, 150, 0.6);
-  --font-heading: 'Montserrat', sans-serif;
-  --font-body: 'Open Sans', sans-serif;
+  --bp-text: #2d3c45;
+  --bp-text-dim: rgba(45, 60, 69, 0.6);
 }
 
-html { scroll-behavior: auto; }
-
-body {
+/* 3D-specific body overrides */
+body.implant-3d {
   background: var(--bp-bg);
-  color: var(--bp-white);
-  font-family: var(--font-body);
+  color: var(--bp-text);
   overflow-x: hidden;
 }
 
@@ -46,14 +59,14 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9998;
   transition: opacity 0.6s ease;
 }
 .loading-screen.hidden { opacity: 0; pointer-events: none; }
 .loading-spinner {
   width: 40px; height: 40px;
-  border: 3px solid rgba(0, 180, 255, 0.15);
-  border-top-color: var(--bp-accent);
+  border: 3px solid rgba(0, 123, 202, 0.15);
+  border-top-color: var(--bp-secondary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 1rem;
@@ -63,20 +76,21 @@ body {
   font-size: 0.8rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--bp-white-dim);
+  color: var(--bp-text-dim);
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* === INTRO === */
 .intro {
-  min-height: 100vh;
+  min-height: 92vh;
+  padding-top: var(--header-height, 80px);
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   position: relative;
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(0, 60, 120, 0.3) 0%, transparent 70%),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 123, 202, 0.08) 0%, transparent 70%),
     var(--bp-bg);
 }
 
@@ -89,11 +103,12 @@ body {
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--bp-accent);
-  border: 1px solid rgba(0, 180, 255, 0.3);
+  color: var(--bp-secondary);
+  border: 1px solid rgba(0, 123, 202, 0.3);
   padding: 0.4em 1.2em;
   border-radius: 2em;
   margin-bottom: 1.5rem;
+  background: rgba(0, 123, 202, 0.05);
 }
 
 .intro__heading {
@@ -104,11 +119,14 @@ body {
   margin-bottom: 1rem;
 }
 
-.intro__heading span { color: var(--bp-accent); }
+.intro__heading {
+  color: var(--bp-accent);
+}
+.intro__heading span { color: var(--bp-secondary); }
 
 .intro__sub {
   font-size: 1.05rem;
-  color: var(--bp-white-dim);
+  color: var(--bp-text-dim);
   line-height: 1.7;
   margin-bottom: 2rem;
 }
@@ -122,13 +140,13 @@ body {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--bp-accent);
+  color: var(--bp-secondary);
   animation: pulse-down 2s ease-in-out infinite;
 }
 
 .intro__scroll-hint svg {
   width: 20px; height: 20px;
-  stroke: var(--bp-accent);
+  stroke: var(--bp-secondary);
   fill: none;
   stroke-width: 2;
 }
@@ -177,18 +195,22 @@ body {
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--bp-accent);
-  border: 1px solid rgba(0, 180, 255, 0.3);
+  color: var(--bp-secondary);
+  border: 1px solid rgba(0, 123, 202, 0.3);
   padding: 0.3em 1em;
   border-radius: 2em;
   margin-bottom: 0.6rem;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .phase-label__title {
   font-family: var(--font-heading);
   font-size: clamp(1.4rem, 3vw, 2.2rem);
   font-weight: 700;
-  color: var(--bp-white);
+  color: var(--bp-accent);
+  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
 }
 
 .phase-desc {
@@ -206,13 +228,14 @@ body {
 .phase-desc__text {
   font-size: 1rem;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(0, 20, 40, 0.85);
+  color: var(--bp-text);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 180, 255, 0.2);
+  border: 1px solid rgba(0, 123, 202, 0.15);
   border-radius: 12px;
   padding: 1.1rem 1.6rem;
+  box-shadow: 0 6px 24px rgba(0, 38, 76, 0.08);
 }
 
 /* === PROGRESS BAR === */
@@ -232,23 +255,23 @@ body {
 .progress-track__line {
   width: 2px;
   height: 40px;
-  background: rgba(0, 180, 255, 0.15);
+  background: rgba(0, 38, 76, 0.12);
 }
 
 .progress-track__dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 2px solid rgba(0, 180, 255, 0.3);
-  background: transparent;
+  border: 2px solid rgba(0, 38, 76, 0.3);
+  background: #fff;
   transition: all 0.4s ease;
   position: relative;
 }
 
 .progress-track__dot.active {
-  border-color: var(--bp-accent);
-  background: var(--bp-accent);
-  box-shadow: 0 0 12px rgba(0, 180, 255, 0.5);
+  border-color: var(--bp-secondary);
+  background: var(--bp-secondary);
+  box-shadow: 0 0 12px rgba(0, 123, 202, 0.5);
 }
 
 .progress-track__dot-label {
@@ -261,65 +284,325 @@ body {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--bp-white-dim);
+  color: var(--bp-text-dim);
   white-space: nowrap;
   opacity: 0;
   transition: opacity 0.3s ease;
+  background: rgba(255,255,255,0.85);
+  padding: 3px 8px;
+  border-radius: 3px;
 }
 
 .progress-track__dot.active .progress-track__dot-label {
   opacity: 1;
-  color: var(--bp-accent);
+  color: var(--bp-secondary);
 }
 
 /* === OUTRO === */
 .outro {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: var(--space-2xl, 4rem) 0;
   text-align: center;
-  position: relative;
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(0, 60, 120, 0.2) 0%, transparent 70%),
-    var(--bp-bg);
+    radial-gradient(ellipse at 50% 0%, rgba(0, 123, 202, 0.06) 0%, transparent 60%),
+    var(--bp-bg-soft);
+  border-top: 1px solid rgba(0, 38, 76, 0.06);
 }
 
-.outro__content { max-width: 600px; padding: 2rem; }
+.outro__content { max-width: 600px; padding: 2rem; margin: 0 auto; }
 
 .outro__heading {
   font-family: var(--font-heading);
-  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
   font-weight: 700;
+  color: var(--bp-accent);
   margin-bottom: 1rem;
 }
 
-.outro__heading span { color: var(--bp-accent); }
+.outro__heading span { color: var(--bp-secondary); }
 
 .outro__text {
-  font-size: 1rem;
-  color: var(--bp-white-dim);
+  font-size: 1.05rem;
+  color: var(--bp-text-dim);
   line-height: 1.7;
   margin-bottom: 2rem;
+}
+
+/* === LEADGEN FUNNEL "WIRD ES BEZUSCHUSST?" === */
+.leadgen {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #fff;
+  border: 1px solid rgba(0, 38, 76, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 38, 76, 0.08);
+  text-align: left;
+}
+
+.leadgen__badge {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--bp-secondary);
+  background: rgba(0, 123, 202, 0.08);
+  padding: 0.35em 1em;
+  border-radius: 2em;
+  margin-bottom: 0.8rem;
+}
+
+.leadgen__title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.3rem, 2.5vw, 1.6rem);
+  font-weight: 700;
+  color: var(--bp-accent);
+  margin-bottom: 0.5rem;
+}
+
+.leadgen__intro {
+  font-size: 0.95rem;
+  color: var(--bp-text-dim);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.leadgen__progress {
+  height: 4px;
+  background: rgba(0, 38, 76, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.leadgen__progress-bar {
+  height: 100%;
+  background: var(--bp-secondary);
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 0%;
+}
+
+.leadgen__step { display: none; }
+.leadgen__step.active { display: block; animation: leadgenFadeIn 0.3s ease; }
+
+@keyframes leadgenFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.leadgen__question {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--bp-accent);
+  margin-bottom: 1rem;
+}
+
+.leadgen__hint {
+  font-size: 0.85rem;
+  color: var(--bp-text-dim);
+  margin-bottom: 1rem;
+}
+
+.leadgen__options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.leadgen__option {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 14px 18px;
+  background: #fff;
+  border: 2px solid rgba(0, 38, 76, 0.1);
+  border-radius: 10px;
+  color: var(--bp-text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+  line-height: 1.4;
+}
+
+.leadgen__option:hover {
+  border-color: var(--bp-secondary);
+  background: rgba(0, 123, 202, 0.04);
+  transform: translateX(3px);
+}
+
+.leadgen__option.selected {
+  border-color: var(--bp-secondary);
+  background: rgba(0, 123, 202, 0.08);
+}
+
+.leadgen__option::before {
+  content: '';
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 38, 76, 0.2);
+  transition: all 0.2s ease;
+}
+
+.leadgen__option.selected::before {
+  border-color: var(--bp-secondary);
+  background: var(--bp-secondary);
+  box-shadow: inset 0 0 0 4px #fff;
+}
+
+.leadgen__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.leadgen__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.leadgen__input {
+  padding: 12px 14px;
+  background: #fff;
+  border: 2px solid rgba(0, 38, 76, 0.1);
+  border-radius: 8px;
+  color: var(--bp-text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease;
+  outline: none;
+  width: 100%;
+}
+
+.leadgen__input:focus { border-color: var(--bp-secondary); }
+.leadgen__input.error { border-color: #d14848; }
+
+.leadgen__checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--bp-text-dim);
+  line-height: 1.4;
+}
+.leadgen__checkbox input { margin-top: 3px; accent-color: var(--bp-secondary); }
+.leadgen__checkbox a { color: var(--bp-secondary); text-decoration: underline; }
+
+.leadgen__submit {
+  margin-top: 0.5rem;
+  padding: 14px 24px;
+  background: var(--bp-secondary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.leadgen__submit:hover {
+  background: var(--bp-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 123, 202, 0.25);
+}
+.leadgen__submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.leadgen__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 1rem;
+  background: none;
+  border: none;
+  color: var(--bp-text-dim);
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+.leadgen__back:hover { color: var(--bp-secondary); }
+
+.leadgen__result {
+  padding: 1.25rem 1.5rem;
+  background: rgba(0, 123, 202, 0.06);
+  border-left: 4px solid var(--bp-secondary);
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+  color: var(--bp-text);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+.leadgen__result strong { color: var(--bp-accent); }
+
+.leadgen__thankyou {
+  text-align: center;
+  padding: 1rem 0;
+}
+.leadgen__thankyou-icon {
+  width: 64px; height: 64px;
+  margin: 0 auto 1rem;
+  background: rgba(0, 180, 100, 0.15);
+  color: #00a066;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.leadgen__thankyou-icon svg { width: 32px; height: 32px; }
+.leadgen__thankyou h3 {
+  font-family: var(--font-heading);
+  color: var(--bp-accent);
+  margin-bottom: 0.5rem;
+}
+
+.outro__cta-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
 }
 
 .outro__cta {
   display: inline-block;
   font-family: var(--font-heading);
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: #fff;
-  background: linear-gradient(135deg, var(--bp-accent), var(--bp-secondary));
-  padding: 0.9em 2.5em;
-  border-radius: 3em;
+  background: var(--bp-secondary);
+  padding: 16px 32px;
+  border-radius: 4px;
   text-decoration: none;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.2s ease;
+  border: 2px solid var(--bp-secondary);
 }
 
 .outro__cta:hover {
+  background: var(--bp-accent);
+  border-color: var(--bp-accent);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 180, 255, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 38, 76, 0.2);
+}
+
+.outro__cta--outline {
+  background: transparent;
+  color: var(--bp-secondary);
+}
+.outro__cta--outline:hover {
+  background: var(--bp-secondary);
+  color: #fff;
 }
 
 /* === FLASH OVERLAY === */
@@ -350,10 +633,10 @@ body {
   transform: translateY(0);
 }
 .mat-group {
-  background: rgba(0, 20, 40, 0.85);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 180, 255, 0.15);
+  border: 1px solid rgba(0, 38, 76, 0.1);
   border-radius: 14px;
   padding: 1rem 1.2rem;
   min-width: 155px;
@@ -361,6 +644,7 @@ body {
   transform: translateY(15px);
   transition: opacity 0.5s ease, transform 0.5s ease;
   pointer-events: none;
+  box-shadow: 0 6px 20px rgba(0, 38, 76, 0.08);
 }
 .mat-group.visible {
   opacity: 1;
@@ -373,7 +657,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--bp-accent);
+  color: var(--bp-secondary);
   margin-bottom: 0.6rem;
 }
 .mat-option {
@@ -384,21 +668,21 @@ body {
   cursor: pointer;
   transition: color 0.2s ease;
   font-family: var(--font-body);
-  font-size: 1rem;
-  color: var(--bp-white-dim);
+  font-size: 0.95rem;
+  color: var(--bp-text-dim);
 }
-.mat-option:hover { color: var(--bp-white); }
-.mat-option.active { color: var(--bp-accent); }
+.mat-option:hover { color: var(--bp-text); }
+.mat-option.active { color: var(--bp-secondary); font-weight: 600; }
 .mat-swatch {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.2);
+  border: 2px solid rgba(0, 38, 76, 0.15);
   flex-shrink: 0;
 }
 .mat-option.active .mat-swatch {
-  border-color: var(--bp-accent);
-  box-shadow: 0 0 6px rgba(0, 180, 255, 0.5);
+  border-color: var(--bp-secondary);
+  box-shadow: 0 0 6px rgba(0, 123, 202, 0.4);
 }
 
 /* === RESPONSIVE === */
@@ -411,7 +695,48 @@ body {
 }
 </style>
 </head>
-<body>
+<body class="implant-3d">
+
+  <a href="#main" class="skip-link">Zum Inhalt springen</a>
+
+  <!-- Header -->
+  <header class="header" id="header">
+    <div class="header__inner">
+      <a href="/" class="header__logo">
+        <picture>
+          <source srcset="assets/logo_200h.webp" type="image/webp">
+          <img src="assets/logo_200h.png" alt="Zahnarztpraxis Dres. Sender" width="430" height="200">
+        </picture>
+      </a>
+      <nav class="header__nav" aria-label="Hauptnavigation">
+        <ul class="header__nav-list">
+          <li><a href="/" class="header__nav-link">Start</a></li>
+          <li><a href="praxis.html" class="header__nav-link">Die Praxis</a></li>
+          <li><a href="leistungen.html" class="header__nav-link active">Leistungen</a></li>
+          <li><a href="karriere.html" class="header__nav-link">Karriere</a></li>
+          <li><a href="kontakt.html" class="header__nav-link">Kontakt</a></li>
+        </ul>
+        <a href="https://pro.doctolib.de/zahnarztpraxis/wadern/zahnarztpraxis-dr-sender?utm_campaign=website-button&utm_source=nav-cta&utm_medium=referral" class="btn btn--doctolib btn--sm header__cta" target="_blank" rel="noopener">Online-Termin</a>
+      </nav>
+      <button class="menu-toggle" aria-label="Menü öffnen" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobile-menu">
+    <ul class="mobile-menu__list">
+      <li><a href="/">Start</a></li>
+      <li><a href="praxis.html">Die Praxis</a></li>
+      <li><a href="leistungen.html">Leistungen</a></li>
+      <li><a href="karriere.html">Karriere</a></li>
+      <li><a href="kontakt.html">Kontakt</a></li>
+    </ul>
+    <a href="https://pro.doctolib.de/zahnarztpraxis/wadern/zahnarztpraxis-dr-sender?utm_campaign=website-button&utm_source=mobile-menu&utm_medium=referral" class="btn btn--doctolib btn--lg" target="_blank" rel="noopener">Online-Termin buchen</a>
+  </div>
+
+  <main id="main">
 
 <!-- ========== LOADING SCREEN ========== -->
 <div class="loading-screen" id="loadingScreen">
@@ -513,11 +838,279 @@ body {
 <!-- ========== OUTRO ========== -->
 <section class="outro">
   <div class="outro__content">
-    <h2 class="outro__heading">Ihr neues Lächeln <span>wartet</span></h2>
-    <p class="outro__text">Modernste Implantologie für natürliche Ergebnisse. Vereinbaren Sie jetzt Ihren persönlichen Beratungstermin bei Zahnarzt Sender.</p>
-    <a href="#" class="outro__cta">Termin vereinbaren</a>
+    <h2 class="outro__heading">Ihr neues Lächeln <span>wartet schon.</span></h2>
+    <p class="outro__text">Modernste Implantologie für natürliche Ergebnisse. Vereinbaren Sie jetzt Ihren persönlichen Beratungstermin — wir nehmen uns Zeit für Sie.</p>
+  </div>
+
+  <!-- ===== LEADGEN: WIRD MEIN IMPLANTAT BEZUSCHUSST? ===== -->
+  <div class="leadgen" id="leadgen" style="margin: 0 auto 2rem;">
+
+    <span class="leadgen__badge">In 60 Sekunden</span>
+    <h3 class="leadgen__title">Wird mein Implantat bezuschusst?</h3>
+    <p class="leadgen__intro">Beantworten Sie 3 kurze Fragen und erfahren Sie, mit welchem Zuschuss Sie rechnen können.</p>
+
+    <div class="leadgen__progress"><div class="leadgen__progress-bar" id="leadgenBar"></div></div>
+
+    <!-- Step 1: Kassenart -->
+    <div class="leadgen__step active" data-step="1" data-key="kassenart">
+      <p class="leadgen__question">Wie sind Sie versichert?</p>
+      <div class="leadgen__options">
+        <button class="leadgen__option" data-value="Gesetzlich">Gesetzlich krankenversichert</button>
+        <button class="leadgen__option" data-value="Privat">Privat krankenversichert</button>
+        <button class="leadgen__option" data-value="Zusatz">Gesetzlich + private Zahnzusatzversicherung</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Bonusheft -->
+    <div class="leadgen__step" data-step="2" data-key="bonusheft">
+      <p class="leadgen__question">Führen Sie ein Bonusheft bei Ihrer Krankenkasse?</p>
+      <p class="leadgen__hint">Ein lückenlos geführtes Bonusheft erhöht den Zuschuss um bis zu 30 %.</p>
+      <div class="leadgen__options">
+        <button class="leadgen__option" data-value="Ja, 10+ Jahre">Ja, seit mindestens 10 Jahren</button>
+        <button class="leadgen__option" data-value="Ja, 5+ Jahre">Ja, seit mindestens 5 Jahren</button>
+        <button class="leadgen__option" data-value="Weniger">Weniger als 5 Jahre / lückenhaft</button>
+        <button class="leadgen__option" data-value="Nein">Nein / weiß nicht</button>
+      </div>
+      <button class="leadgen__back" type="button" data-back>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Zurück
+      </button>
+    </div>
+
+    <!-- Step 3: Situation -->
+    <div class="leadgen__step" data-step="3" data-key="situation">
+      <p class="leadgen__question">Um welche Situation geht es bei Ihnen?</p>
+      <div class="leadgen__options">
+        <button class="leadgen__option" data-value="1 Zahn fehlt">Ein einzelner Zahn fehlt</button>
+        <button class="leadgen__option" data-value="Mehrere Zähne fehlen">Mehrere Zähne fehlen</button>
+        <button class="leadgen__option" data-value="Komplette Versorgung">Komplette Versorgung (Oberkiefer/Unterkiefer)</button>
+        <button class="leadgen__option" data-value="Beratung">Ich möchte mich erstmal unverbindlich beraten lassen</button>
+      </div>
+      <button class="leadgen__back" type="button" data-back>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Zurück
+      </button>
+    </div>
+
+    <!-- Step 4: Ergebnis + Kontaktformular -->
+    <div class="leadgen__step" data-step="4">
+      <div class="leadgen__result" id="leadgenResult">
+        <strong>Ihre Einschätzung:</strong>
+        <span id="leadgenResultText"></span>
+      </div>
+
+      <p class="leadgen__question">Möchten Sie eine individuelle Einschätzung?</p>
+      <p class="leadgen__hint">Hinterlassen Sie Ihre Kontaktdaten — wir melden uns innerhalb von 48 Stunden mit einer konkreten Kostenübersicht.</p>
+
+      <form class="leadgen__form" id="leadgenForm" novalidate>
+        <div class="leadgen__row">
+          <input class="leadgen__input" type="text" name="vorname" placeholder="Vorname *" required>
+          <input class="leadgen__input" type="text" name="nachname" placeholder="Nachname *" required>
+        </div>
+        <div class="leadgen__row">
+          <input class="leadgen__input" type="email" name="email" placeholder="E-Mail *" required>
+          <input class="leadgen__input" type="tel" name="telefon" placeholder="Telefon *" required>
+        </div>
+        <label class="leadgen__checkbox">
+          <input type="checkbox" name="datenschutz" required>
+          <span>Ich habe die <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a> gelesen und bin mit der Verarbeitung meiner Daten einverstanden.</span>
+        </label>
+        <button class="leadgen__submit" type="submit">Kostenübersicht anfordern</button>
+      </form>
+
+      <button class="leadgen__back" type="button" data-back>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Zurück
+      </button>
+    </div>
+
+    <!-- Step 5: Danke -->
+    <div class="leadgen__step" data-step="5">
+      <div class="leadgen__thankyou">
+        <div class="leadgen__thankyou-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <h3>Vielen Dank für Ihre Anfrage!</h3>
+        <p style="color: var(--bp-text-dim);">Wir melden uns innerhalb von 48 Stunden bei Ihnen mit einer individuellen Kostenübersicht.</p>
+        <p style="margin-top: 1rem; font-size: 0.9rem;">
+          <a href="tel:+496874250" style="color: var(--bp-secondary); font-weight: 600;">06874 – 250</a>
+          &nbsp;·&nbsp;
+          <a href="mailto:info@zahnarzt-sender.de" style="color: var(--bp-secondary); font-weight: 600;">info@zahnarzt-sender.de</a>
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="outro__cta-row">
+    <a href="kontakt.html#terminbuchung" class="outro__cta">Beratungstermin vereinbaren</a>
+    <a href="tel:+496874250" class="outro__cta outro__cta--outline">06874 – 250 anrufen</a>
   </div>
 </section>
+
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__about">
+          <img src="assets/logo_100h.webp" alt="Zahnarztpraxis Dres. Sender" class="footer__logo" width="215" height="100">
+          <p>Die Zahnärzte Sender behandeln und versorgen Patienten bereits seit über 70 Jahren in Nunkirchen / Wadern.</p>
+          <p>Schöne und gesunde Zähne sind keine Frage des Alters — sondern der richtigen Behandlung.</p>
+        </div>
+        <div>
+          <h5>Navigation</h5>
+          <ul class="footer__links">
+            <li><a href="/">Start</a></li>
+            <li><a href="praxis.html">Die Praxis</a></li>
+            <li><a href="leistungen.html">Leistungen</a></li>
+            <li><a href="karriere.html">Karriere</a></li>
+            <li><a href="kontakt.html">Kontakt</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Kontakt</h5>
+          <ul class="footer__links">
+            <li><a href="tel:+496874250">(+49) 6874 250</a></li>
+            <li><a href="mailto:info@zahnarzt-sender.de">info@zahnarzt-sender.de</a></li>
+            <li>Im Flürchen 15</li>
+            <li>66687 Nunkirchen / Wadern</li>
+          </ul>
+        </div>
+        <div>
+          <h5>Öffnungszeiten</h5>
+          <table class="footer__hours">
+            <tr><td>Mo</td><td>08-12, 14-18</td></tr>
+            <tr><td>Di</td><td>08-12, 14-18</td></tr>
+            <tr><td>Mi</td><td>08-12</td></tr>
+            <tr><td>Do</td><td>08-12, 14-19</td></tr>
+            <tr><td>Fr</td><td>08-14</td></tr>
+            <tr><td>Sa/So</td><td>geschlossen</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>&copy; 2026 Zahnarztpraxis Dres. Sender. Alle Rechte vorbehalten. <a href="impressum.html" style="color: inherit;">Impressum</a> | <a href="datenschutz.html" style="color: inherit;">Datenschutz</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Leadgen JS -->
+  <script>
+  (function() {
+    const leadgen = document.getElementById('leadgen');
+    if (!leadgen) return;
+
+    const steps = leadgen.querySelectorAll('.leadgen__step');
+    const bar = document.getElementById('leadgenBar');
+    const answers = {};
+    let currentStep = 1;
+    const totalSteps = 4; // nicht Danke-Screen
+
+    function showStep(n) {
+      steps.forEach(s => s.classList.toggle('active', parseInt(s.dataset.step) === n));
+      currentStep = n;
+      const progress = Math.min(100, ((n - 1) / totalSteps) * 100);
+      bar.style.width = progress + '%';
+    }
+
+    // Single-choice clicks
+    leadgen.querySelectorAll('.leadgen__option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const step = btn.closest('.leadgen__step');
+        const key = step.dataset.key;
+        answers[key] = btn.dataset.value;
+        step.querySelectorAll('.leadgen__option').forEach(o => o.classList.remove('selected'));
+        btn.classList.add('selected');
+
+        setTimeout(() => {
+          if (currentStep < 3) {
+            showStep(currentStep + 1);
+          } else if (currentStep === 3) {
+            computeResult();
+            showStep(4);
+          }
+        }, 250);
+      });
+    });
+
+    // Back buttons
+    leadgen.querySelectorAll('[data-back]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (currentStep > 1) showStep(currentStep - 1);
+      });
+    });
+
+    function computeResult() {
+      const k = answers.kassenart || '';
+      const b = answers.bonusheft || '';
+      const s = answers.situation || '';
+      let text = '';
+
+      if (k === 'Privat') {
+        text = ' Als Privatversicherte/r übernehmen die meisten Tarife <strong>60–90 %</strong> der Implantatkosten — abhängig von Ihrem Vertrag. Wir erstellen Ihnen gerne einen genauen Heil- und Kostenplan zur Einreichung.';
+      } else if (k === 'Zusatz') {
+        text = ' Mit einer Zahnzusatzversicherung können Sie je nach Tarif mit <strong>50–80 % Kostenerstattung</strong> rechnen. Wir prüfen Ihren Tarif und zeigen Ihnen die genaue Erstattungssumme vorab.';
+      } else {
+        // gesetzlich
+        if (b === 'Ja, 10+ Jahre') {
+          text = ' Die gesetzliche Krankenkasse übernimmt einen <strong>Festzuschuss mit +30 % Bonus</strong> (dank lückenlos geführtem Bonusheft). Für die Gesamtkosten übernehmen wir gerne die detaillierte Aufschlüsselung.';
+        } else if (b === 'Ja, 5+ Jahre') {
+          text = ' Mit 5 Jahren Bonusheft erhalten Sie <strong>Festzuschuss + 20 % Bonus</strong>. Das deckt bei Implantaten etwa 10–15 % der Gesamtkosten ab — den Rest übernehmen Sie als Eigenleistung. Wir beraten Sie zu Finanzierungsoptionen.';
+        } else {
+          text = ' Die gesetzliche Krankenkasse zahlt bei Implantaten nur den <strong>Festzuschuss für Regelversorgung</strong> (~10 % der Kosten). Wir bieten jedoch faire Ratenzahlung und zeigen Ihnen alle Optionen.';
+        }
+      }
+
+      if (s === 'Komplette Versorgung') {
+        text += ' Bei kompletten Versorgungen (z. B. All-on-4) gibt es oft zusätzliche Zuschussmöglichkeiten.';
+      }
+
+      document.getElementById('leadgenResultText').innerHTML = text;
+    }
+
+    // Form submit
+    const form = document.getElementById('leadgenForm');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+      // Validate
+      let valid = true;
+      form.querySelectorAll('[required]').forEach(input => {
+        if (input.type === 'checkbox' && !input.checked) valid = false;
+        else if (input.type !== 'checkbox' && !input.value.trim()) {
+          input.classList.add('error');
+          valid = false;
+        } else {
+          input.classList.remove('error');
+        }
+      });
+      if (!valid) return;
+
+      // Submit to Formspree (reuse same endpoint as Bewerberfunnel)
+      const submitBtn = form.querySelector('.leadgen__submit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Wird gesendet...';
+
+      const payload = new FormData();
+      payload.append('_subject', 'Leadgen-Anfrage: Implantat-Bezuschussung');
+      payload.append('_typ', 'Implantat-Bezuschussung-Quiz');
+      Object.entries(answers).forEach(([k, v]) => payload.append(k, v));
+      Object.entries(data).forEach(([k, v]) => payload.append(k, v));
+
+      fetch('https://formspree.io/f/xaqannjr', {
+        method: 'POST',
+        body: payload,
+        headers: { 'Accept': 'application/json' }
+      }).then(r => {
+        showStep(5);
+      }).catch(() => {
+        // Silent fallback: Danke trotzdem zeigen
+        console.log('Leadgen data:', Object.fromEntries(payload));
+        showStep(5);
+      });
+    });
+  })();
+  </script>
 
 <!-- ========== SCRIPTS ========== -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.145.0/build/three.min.js"></script>
@@ -544,8 +1137,8 @@ renderer.toneMappingExposure = 1.1;
 // renderer.localClippingEnabled = true; // Clipping disabled — caused artefacts
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x001428);
-scene.fog = new THREE.FogExp2(0x001428, 0.012);
+scene.background = new THREE.Color(0xf4f7fb); // helles Blaugrau
+scene.fog = new THREE.FogExp2(0xf4f7fb, 0.008);
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 8, 18);
@@ -561,9 +1154,9 @@ pmremGenerator.compileEquirectangularShader();
   const envMat = new THREE.ShaderMaterial({
     side: THREE.BackSide,
     uniforms: {
-      topColor: { value: new THREE.Color(0x334466) },
-      bottomColor: { value: new THREE.Color(0x1a0e05) },
-      midColor: { value: new THREE.Color(0x112233) }
+      topColor: { value: new THREE.Color(0xe8eef5) },   // oben hell
+      bottomColor: { value: new THREE.Color(0xd4dae2) }, // unten leicht grauer
+      midColor: { value: new THREE.Color(0xdce4ee) }    // mittig neutral
     },
     vertexShader: `
       varying vec3 vWorldPos;
@@ -592,14 +1185,14 @@ pmremGenerator.compileEquirectangularShader();
   pmremGenerator.dispose();
 })();
 
-// ------ LIGHTS ------
-const hemiLight = new THREE.HemisphereLight(0x6688bb, 0x443322, 0.6);
+// ------ LIGHTS (Light Mode) ------
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0xc8d2dc, 0.85);
 scene.add(hemiLight);
 
-const dirLight = new THREE.DirectionalLight(0xfff5ee, 1.4);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.3);
 dirLight.position.set(5, 12, 8);
 dirLight.castShadow = true;
-dirLight.shadow.mapSize.set(512, 512); // smaller for performance
+dirLight.shadow.mapSize.set(512, 512);
 dirLight.shadow.camera.near = 0.5;
 dirLight.shadow.camera.far = 30;
 dirLight.shadow.camera.left = -8;
@@ -609,53 +1202,57 @@ dirLight.shadow.camera.bottom = -8;
 dirLight.shadow.bias = -0.001;
 scene.add(dirLight);
 
-const fillLight = new THREE.DirectionalLight(0x8899cc, 0.4);
+const fillLight = new THREE.DirectionalLight(0xa8c0d8, 0.4);
 fillLight.position.set(-5, 4, 4);
 scene.add(fillLight);
 
-const rimLight = new THREE.DirectionalLight(0x66aaff, 0.5);
+const rimLight = new THREE.DirectionalLight(0x88aad0, 0.45);
 rimLight.position.set(-3, 5, -8);
 scene.add(rimLight);
 
-const warmLight = new THREE.PointLight(0xffaa77, 0.3, 15);
-warmLight.position.set(4, 3, 3);
-scene.add(warmLight);
+const accentLight = new THREE.PointLight(0xffffff, 0.25, 15);
+accentLight.position.set(4, 3, 3);
+scene.add(accentLight);
 
-// ------ MILLIMETER PAPER GROUND ------
-// Classic light-blue engineering millimeter paper look
+// ------ MILLIMETER PAPER BACKDROP (Light Mode) ------
+// Dunkelblaue Gitterlinien auf leicht blaustichigem Weiß
+// Als schräger Backdrop, sodass wir von vorne "auf das Modell schauen"
 const mmCanvas = document.createElement('canvas');
 mmCanvas.width = 1024;
 mmCanvas.height = 1024;
 const ctx = mmCanvas.getContext('2d');
 
-// Transparent dark background
-ctx.fillStyle = 'rgba(0, 10, 20, 0.3)';
+// Heller Papier-Hintergrund (leicht bläulich)
+ctx.fillStyle = '#ffffff';
+ctx.fillRect(0, 0, 1024, 1024);
+// Zarter Blaustich als Papierton
+ctx.fillStyle = 'rgba(220, 232, 244, 0.55)';
 ctx.fillRect(0, 0, 1024, 1024);
 
-// 1mm fine grid — light blue
-ctx.strokeStyle = 'rgba(100, 190, 255, 0.22)';
+// 1mm feines Gitter — dunkelblau, sehr dezent
+ctx.strokeStyle = 'rgba(0, 56, 120, 0.18)';
 ctx.lineWidth = 0.5;
-const mmStep = 1024 / 100; // 100 divisions = 1mm grid
+const mmStep = 1024 / 100;
 for (let i = 0; i <= 100; i++) {
   const pos = i * mmStep;
   ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, 1024); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(1024, pos); ctx.stroke();
 }
 
-// 5mm medium grid — brighter light blue
-ctx.strokeStyle = 'rgba(100, 200, 255, 0.45)';
+// 5mm Gitter — etwas kräftiger
+ctx.strokeStyle = 'rgba(0, 56, 120, 0.32)';
 ctx.lineWidth = 1;
-const medStep = 1024 / 20; // 20 divisions = 5mm grid
+const medStep = 1024 / 20;
 for (let i = 0; i <= 20; i++) {
   const pos = i * medStep;
   ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, 1024); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(1024, pos); ctx.stroke();
 }
 
-// 1cm major grid — boldest light blue, classic millimeter paper look
-ctx.strokeStyle = 'rgba(90, 190, 255, 0.7)';
+// 1cm Hauptlinien — am kräftigsten
+ctx.strokeStyle = 'rgba(0, 38, 76, 0.55)';
 ctx.lineWidth = 1.8;
-const cmStep = 1024 / 10; // 10 divisions = 1cm grid
+const cmStep = 1024 / 10;
 for (let i = 0; i <= 10; i++) {
   const pos = i * cmStep;
   ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, 1024); ctx.stroke();
@@ -665,22 +1262,34 @@ for (let i = 0; i <= 10; i++) {
 const mmTexture = new THREE.CanvasTexture(mmCanvas);
 mmTexture.wrapS = THREE.RepeatWrapping;
 mmTexture.wrapT = THREE.RepeatWrapping;
-mmTexture.repeat.set(4, 4); // tile it for density
+mmTexture.repeat.set(3, 3);
 
-const groundGeo = new THREE.PlaneGeometry(40, 40);
-const groundMat = new THREE.MeshStandardMaterial({
-  color: 0x041830,
-  roughness: 0.92,
+// Schräger Backdrop hinter/unter dem Modell — wirkt wie ein Zeichenbrett,
+// auf das wir aus leicht erhöhter Position schauen.
+const backdropGeo = new THREE.PlaneGeometry(50, 50);
+const backdropMat = new THREE.MeshStandardMaterial({
+  color: 0xffffff,
+  roughness: 0.95,
   metalness: 0.0,
-  transparent: true,
-  opacity: 0.85,
   map: mmTexture,
+  transparent: false,
 });
-const ground = new THREE.Mesh(groundGeo, groundMat);
-ground.rotation.x = -Math.PI / 2;
-ground.position.y = -3.49;
-ground.receiveShadow = true;
-scene.add(ground);
+const backdrop = new THREE.Mesh(backdropGeo, backdropMat);
+// Schräg nach hinten gekippt: so wirkt das Modell, als stünde es vor einem Zeichenbrett
+backdrop.rotation.x = -Math.PI / 2.6;  // statt -PI/2 (horizontal) leicht aufgerichtet
+backdrop.position.set(0, -2.5, -10);
+backdrop.receiveShadow = true;
+scene.add(backdrop);
+
+// Unauffälliger Bodenhauch (nur Schattenfang, fast unsichtbar)
+const groundShadow = new THREE.Mesh(
+  new THREE.PlaneGeometry(30, 30),
+  new THREE.ShadowMaterial({ opacity: 0.08 })
+);
+groundShadow.rotation.x = -Math.PI / 2;
+groundShadow.position.y = -3.49;
+groundShadow.receiveShadow = true;
+scene.add(groundShadow);
 
 
 // ------ MATERIALS ------
