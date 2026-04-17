@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Implantat-Animation (Light/2D) — Zahnarztpraxis Dres. Sender</title>
+<style>
+/* ==========================================
+   IMPLANTAT 2D CSS ANIMATION — Light Version
+   Rein CSS, keine Grafiken, kein JS nötig
+   ========================================== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #f8f9fa;
+  --primary: #007bca;
+  --primary-dark: #00264c;
+  --anthrazit: #373f43;
+  --bone: #f5e6d0;
+  --bone-dark: #d4b896;
+  --gum: #e8a0a0;
+  --gum-dark: #c47070;
+  --titan: #b8c4d0;
+  --titan-shine: #d8e2ec;
+  --crown: #f0ede5;
+  --crown-shine: #faf8f2;
+  --abutment: #a0aab4;
+  --text: #2d3c45;
+  --text-light: #666;
+  --font: 'Montserrat', 'Open Sans', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  overflow-x: hidden;
+}
+
+/* === SCROLL CONTAINER === */
+.scroll-container {
+  height: 600vh;
+  position: relative;
+}
+
+.sticky-frame {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* === IMPLANT SCENE === */
+.scene {
+  position: relative;
+  width: 300px;
+  height: 500px;
+}
+
+/* === KIEFER (Jawbone) === */
+.jawbone {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 260px;
+  height: 180px;
+  background: var(--bone);
+  border-radius: 0 0 60px 60px;
+  border: 2px solid var(--bone-dark);
+  overflow: hidden;
+}
+
+.jawbone::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: var(--gum);
+  border-bottom: 2px solid var(--gum-dark);
+}
+
+/* Bohrkanal */
+.drill-hole {
+  position: absolute;
+  top: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 0;
+  background: rgba(0,0,0,0.15);
+  border-radius: 0 0 4px 4px;
+  transition: height 0.8s ease;
+}
+
+.drill-hole.active {
+  height: 100px;
+}
+
+/* === IMPLANTAT-SCHRAUBE === */
+.implant-screw {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%) translateY(200px);
+  width: 20px;
+  height: 90px;
+  background: linear-gradient(90deg, var(--titan) 0%, var(--titan-shine) 40%, var(--titan) 100%);
+  border-radius: 0 0 6px 6px;
+  transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 2;
+}
+
+.implant-screw.active {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Gewinde */
+.implant-screw::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: -3px;
+  right: -3px;
+  bottom: 8px;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 5px,
+    rgba(0,0,0,0.08) 5px,
+    rgba(0,0,0,0.08) 7px
+  );
+  border-radius: 2px;
+}
+
+/* Spitze */
+.implant-screw::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 12px solid var(--titan);
+}
+
+/* === ABUTMENT === */
+.abutment {
+  position: absolute;
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  opacity: 0;
+  width: 16px;
+  height: 30px;
+  background: linear-gradient(90deg, var(--abutment) 0%, #c0c8d0 50%, var(--abutment) 100%);
+  clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%);
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 3;
+}
+
+.abutment.active {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* === KRONE === */
+.crown {
+  position: absolute;
+  bottom: 168px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  opacity: 0;
+  width: 40px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--crown-shine) 0%, var(--crown) 60%, #e0dbd2 100%);
+  border-radius: 8px 8px 2px 2px;
+  border: 1px solid rgba(0,0,0,0.08);
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 4;
+}
+
+.crown.active {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* Zahnform */
+.crown::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 10px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 50%;
+}
+
+/* === LABELS === */
+.label {
+  position: absolute;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  white-space: nowrap;
+}
+
+.label.active { opacity: 1; }
+
+.label-screw { right: -140px; bottom: 80px; }
+.label-abutment { right: -140px; bottom: 150px; }
+.label-crown { right: -110px; bottom: 190px; }
+.label-gum { left: -120px; bottom: 135px; }
+.label-bone { left: -130px; bottom: 60px; }
+
+.label::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 30px;
+  height: 1px;
+  background: var(--primary);
+}
+
+.label-screw::before,
+.label-abutment::before,
+.label-crown::before {
+  right: 100%;
+  margin-right: 8px;
+}
+
+.label-gum::before,
+.label-bone::before {
+  left: 100%;
+  margin-left: 8px;
+}
+
+/* === PHASE INDICATOR === */
+.phases {
+  position: fixed;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 10;
+}
+
+.phase-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--primary);
+  background: transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.phase-dot.active {
+  background: var(--primary);
+  box-shadow: 0 0 0 4px rgba(0, 123, 202, 0.2);
+}
+
+.phase-label {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.phase-dot:hover .phase-label {
+  opacity: 1;
+}
+
+/* === TITLE OVERLAY === */
+.title-overlay {
+  position: fixed;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 10;
+  transition: opacity 0.5s ease;
+}
+
+.title-overlay h2 {
+  font-size: 1.5rem;
+  color: var(--primary-dark);
+  margin-bottom: 4px;
+}
+
+.title-overlay p {
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+/* === MOBILE === */
+@media (max-width: 600px) {
+  .scene { transform: scale(0.8); }
+  .phases { right: 10px; }
+  .label { font-size: 11px; }
+  .label-screw { right: -100px; }
+  .label-abutment { right: -100px; }
+  .label-crown { right: -80px; }
+  .label-gum { left: -90px; }
+  .label-bone { left: -100px; }
+}
+</style>
+</head>
+<body>
+
+<div class="title-overlay" id="title">
+  <h2>So entsteht Ihr Implantat</h2>
+  <p>Scrollen Sie, um den Behandlungsablauf zu sehen</p>
+</div>
+
+<div class="phases">
+  <div class="phase-dot active" data-phase="0"><span class="phase-label">Ausgangssituation</span></div>
+  <div class="phase-dot" data-phase="1"><span class="phase-label">Bohrung</span></div>
+  <div class="phase-dot" data-phase="2"><span class="phase-label">Implantat</span></div>
+  <div class="phase-dot" data-phase="3"><span class="phase-label">Abutment</span></div>
+  <div class="phase-dot" data-phase="4"><span class="phase-label">Krone</span></div>
+</div>
+
+<div class="scroll-container">
+  <div class="sticky-frame">
+    <div class="scene">
+      <!-- Kiefer -->
+      <div class="jawbone">
+        <div class="drill-hole" id="drillHole"></div>
+      </div>
+
+      <!-- Implantat-Teile -->
+      <div class="implant-screw" id="screw"></div>
+      <div class="abutment" id="abutment"></div>
+      <div class="crown" id="crown"></div>
+
+      <!-- Labels -->
+      <span class="label label-bone" id="labelBone">Kieferknochen</span>
+      <span class="label label-gum" id="labelGum">Zahnfleisch</span>
+      <span class="label label-screw" id="labelScrew">Titan-Implantat</span>
+      <span class="label label-abutment" id="labelAbutment">Abutment</span>
+      <span class="label label-crown" id="labelCrown">Keramikkrone</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// Simple scroll-driven animation
+const container = document.querySelector('.scroll-container');
+const phases = document.querySelectorAll('.phase-dot');
+const titles = [
+  { h: 'Ausgangssituation', p: 'Der Kiefer nach Zahnverlust' },
+  { h: 'Präzise Bohrung', p: 'Der Bohrkanal wird vorbereitet' },
+  { h: 'Titan-Implantat', p: 'Die künstliche Zahnwurzel wird eingesetzt' },
+  { h: 'Abutment', p: 'Das Verbindungsstück wird aufgesetzt' },
+  { h: 'Ihre neue Krone', p: 'Perfekte Ästhetik — wie ein natürlicher Zahn' },
+];
+
+window.addEventListener('scroll', () => {
+  const rect = container.getBoundingClientRect();
+  const scrolled = -rect.top;
+  const total = container.offsetHeight - window.innerHeight;
+  const progress = Math.max(0, Math.min(1, scrolled / total));
+
+  // Determine phase (0-4)
+  const phase = Math.min(4, Math.floor(progress * 5));
+
+  // Update phase dots
+  phases.forEach((dot, i) => {
+    dot.classList.toggle('active', i <= phase);
+  });
+
+  // Update title
+  const title = document.getElementById('title');
+  title.querySelector('h2').textContent = titles[phase].h;
+  title.querySelector('p').textContent = titles[phase].p;
+
+  // Phase 1: Drill hole
+  document.getElementById('drillHole').classList.toggle('active', phase >= 1);
+
+  // Phase 2: Screw
+  document.getElementById('screw').classList.toggle('active', phase >= 2);
+  document.getElementById('labelScrew').classList.toggle('active', phase >= 2);
+
+  // Phase 3: Abutment
+  document.getElementById('abutment').classList.toggle('active', phase >= 3);
+  document.getElementById('labelAbutment').classList.toggle('active', phase >= 3);
+
+  // Phase 4: Crown
+  document.getElementById('crown').classList.toggle('active', phase >= 4);
+  document.getElementById('labelCrown').classList.toggle('active', phase >= 4);
+
+  // Always show bone/gum labels from phase 1
+  document.getElementById('labelBone').classList.toggle('active', phase >= 1);
+  document.getElementById('labelGum').classList.toggle('active', phase >= 1);
+
+}, { passive: true });
+</script>
+
+</body>
+</html>
