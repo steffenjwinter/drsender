@@ -623,20 +623,21 @@
   align-items: center;
   gap: var(--space-md);
   padding: 1.25rem 2rem;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: var(--color-primary);
   color: #fff;
   text-decoration: none;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 12px 40px rgba(0, 38, 76, 0.22);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 123, 202, 0.25);
+  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
   min-width: min(440px, 100%);
   text-align: left;
   font-family: var(--font-body);
 }
 
 .btn-3d-ansehen:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 18px 50px rgba(0, 38, 76, 0.3);
+  background: var(--color-primary-light);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 123, 202, 0.35);
 }
 
 .btn-3d-ansehen__icon {

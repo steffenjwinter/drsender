@@ -1214,23 +1214,20 @@ const accentLight = new THREE.PointLight(0xffffff, 0.25, 15);
 accentLight.position.set(4, 3, 3);
 scene.add(accentLight);
 
-// ------ MILLIMETER PAPER BACKDROP (Light Mode) ------
-// Dunkelblaue Gitterlinien auf leicht blaustichigem Weiß
-// Als schräger Backdrop, sodass wir von vorne "auf das Modell schauen"
+// ------ MILLIMETERPAPIER — DUNKELBLAUE FLÄCHE (Tisch), Canvas bleibt hell ------
+// Die Fläche, auf der das Modell steht: dunkelblaues Millimeterpapier
+// mit helleren/dunkleren Strichen. Der Canvas (Scene-Background) selbst bleibt hell.
 const mmCanvas = document.createElement('canvas');
 mmCanvas.width = 1024;
 mmCanvas.height = 1024;
 const ctx = mmCanvas.getContext('2d');
 
-// Heller Papier-Hintergrund (leicht bläulich)
-ctx.fillStyle = '#ffffff';
-ctx.fillRect(0, 0, 1024, 1024);
-// Zarter Blaustich als Papierton
-ctx.fillStyle = 'rgba(220, 232, 244, 0.55)';
+// Dunkelblauer Papier-Grund
+ctx.fillStyle = '#00264c';
 ctx.fillRect(0, 0, 1024, 1024);
 
-// 1mm feines Gitter — dunkelblau, sehr dezent
-ctx.strokeStyle = 'rgba(0, 56, 120, 0.18)';
+// 1mm feines Gitter — noch dunkleres Blau, sehr dezent
+ctx.strokeStyle = 'rgba(0, 10, 30, 0.45)';
 ctx.lineWidth = 0.5;
 const mmStep = 1024 / 100;
 for (let i = 0; i <= 100; i++) {
@@ -1239,8 +1236,8 @@ for (let i = 0; i <= 100; i++) {
   ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(1024, pos); ctx.stroke();
 }
 
-// 5mm Gitter — etwas kräftiger
-ctx.strokeStyle = 'rgba(0, 56, 120, 0.32)';
+// 5mm Gitter — etwas kräftiger (helles Blau auf dunklem Grund)
+ctx.strokeStyle = 'rgba(130, 190, 240, 0.28)';
 ctx.lineWidth = 1;
 const medStep = 1024 / 20;
 for (let i = 0; i <= 20; i++) {
@@ -1249,8 +1246,8 @@ for (let i = 0; i <= 20; i++) {
   ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(1024, pos); ctx.stroke();
 }
 
-// 1cm Hauptlinien — am kräftigsten
-ctx.strokeStyle = 'rgba(0, 38, 76, 0.55)';
+// 1cm Hauptlinien — am kräftigsten (helles Blau)
+ctx.strokeStyle = 'rgba(150, 210, 255, 0.5)';
 ctx.lineWidth = 1.8;
 const cmStep = 1024 / 10;
 for (let i = 0; i <= 10; i++) {
@@ -1264,30 +1261,26 @@ mmTexture.wrapS = THREE.RepeatWrapping;
 mmTexture.wrapT = THREE.RepeatWrapping;
 mmTexture.repeat.set(3, 3);
 
-// Schräger Backdrop hinter/unter dem Modell — wirkt wie ein Zeichenbrett,
-// auf das wir aus leicht erhöhter Position schauen.
-const backdropGeo = new THREE.PlaneGeometry(50, 50);
-const backdropMat = new THREE.MeshStandardMaterial({
-  color: 0xffffff,
-  roughness: 0.95,
-  metalness: 0.0,
+// Fläche als horizontaler Tisch (im Lot), auf dem das Modell schwebt.
+// MeshBasicMaterial = unlit → echte dunkelblaue Farbe bleibt erhalten,
+// wird nicht vom Scene-Licht aufgehellt.
+const backdropGeo = new THREE.PlaneGeometry(30, 30);
+const backdropMat = new THREE.MeshBasicMaterial({
   map: mmTexture,
   transparent: false,
 });
 const backdrop = new THREE.Mesh(backdropGeo, backdropMat);
-// Schräg nach hinten gekippt: so wirkt das Modell, als stünde es vor einem Zeichenbrett
-backdrop.rotation.x = -Math.PI / 2.6;  // statt -PI/2 (horizontal) leicht aufgerichtet
-backdrop.position.set(0, -2.5, -10);
-backdrop.receiveShadow = true;
+backdrop.rotation.x = -Math.PI / 2;
+backdrop.position.y = -3.5;
 scene.add(backdrop);
 
-// Unauffälliger Bodenhauch (nur Schattenfang, fast unsichtbar)
+// Shadow-Plane separat (fängt Modell-Schatten — verstärkt den Schwebe-Effekt)
 const groundShadow = new THREE.Mesh(
-  new THREE.PlaneGeometry(30, 30),
-  new THREE.ShadowMaterial({ opacity: 0.08 })
+  new THREE.PlaneGeometry(24, 24),
+  new THREE.ShadowMaterial({ opacity: 0.5 })
 );
 groundShadow.rotation.x = -Math.PI / 2;
-groundShadow.position.y = -3.49;
+groundShadow.position.y = -3.48; // minimal über dem Backdrop, damit Schatten auf dem blauen Tisch sichtbar ist
 groundShadow.receiveShadow = true;
 scene.add(groundShadow);
 
@@ -1366,7 +1359,8 @@ const greenGlow = new THREE.PointLight(0x00ff88, 0, 3);
 greenGlow.position.set(0, 1.5, 1);
 sceneGroup.add(greenGlow);
 
-sceneGroup.position.y = -0.5;
+// Modell schwebt etwas über der dunkelblauen Tischfläche (bei y = -3.5)
+sceneGroup.position.y = 0.8;
 
 
 // ------ HELPER: Simplify geometry for performance ------
